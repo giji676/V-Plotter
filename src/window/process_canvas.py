@@ -6,7 +6,7 @@ from rembg import remove, new_session
 
 from PIL import Image
 from PyQt5.QtCore import QPoint, Qt
-from PyQt5.QtGui import QColor, QImage, QPainter, QPixmap, QTransform
+from PyQt5.QtGui import QColor, QImage, QPainter, QPixmap, QTransform, QPen
 from PyQt5.QtWidgets import QWidget
 
 from src.utils import constants, path_maker, to_steps
@@ -20,10 +20,16 @@ class ProcessCanvas(QWidget):
         self.scale_factor = 1.0
         self.setMouseTracking(True)
         self.dragging = False
+        self.cropping = False
         self.start_pos = QPoint()
         self.cur_pos = QPoint()
         self.last_pos = QPoint()
         self.delta = QPoint()
+
+        self.crop_start_pos = QPoint()
+        self.crop_end_pos = QPoint()
+        self.crop_cur_pos = QPoint()
+        self.crop_pressed = False
 
         self.process_image_window = None
         self.settings = None
@@ -32,36 +38,6 @@ class ProcessCanvas(QWidget):
 
         self.input_image = None
         self.processed_image = None
-
-    def paintEvent(self, event) -> None:
-        # QTs function, updates the canvas
-        if self.input_image is None:
-            return
-
-        painter = QPainter(self)
-        transform = QTransform()
-        transform.scale(self.scale_factor, self.scale_factor)
-        transform.translate(self.cur_pos.x(), self.cur_pos.y())
-        painter.setTransform(transform)
-        painter.drawPixmap(0, 0, QPixmap.fromImage(self.input_image))
-
-    def qimageToPil(self, qimage):
-        # Get image dimensions
-        width = qimage.width()
-        height = qimage.height()
-
-        # Convert QImage to a format suitable for PIL
-        qimage = qimage.convertToFormat(QImage.Format_RGBA8888)
-
-        # Get the binary data from QImage
-        ptr = qimage.constBits()
-        ptr.setsize(height * width * 4)  # 4 bytes per pixel (RGBA)
-
-        # Convert to numpy array and reshape
-        arr = np.frombuffer(ptr, np.uint8).reshape(height, width, 4)
-
-        # Convert numpy array to PIL Image
-        return Image.fromarray(arr)
 
     def quantizeGrayscaleImage(self) -> None:
         if self.input_image is None:
@@ -120,6 +96,25 @@ class ProcessCanvas(QWidget):
         )
         if steps_output:
             self.process_image_window.updateOutput(steps_output)
+
+    # TODO: fix the qimageToPil so it works properly, get rid of qpixmapToImage2 after
+    def qimageToPil(self, qimage):
+        # Get image dimensions
+        width = qimage.width()
+        height = qimage.height()
+
+        # Convert QImage to a format suitable for PIL
+        qimage = qimage.convertToFormat(QImage.Format_RGBA8888)
+
+        # Get the binary data from QImage
+        ptr = qimage.constBits()
+        ptr.setsize(height * width * 4)  # 4 bytes per pixel (RGBA)
+
+        # Convert to numpy array and reshape
+        arr = np.frombuffer(ptr, np.uint8).reshape(height, width, 4)
+
+        # Convert numpy array to PIL Image
+        return Image.fromarray(arr)
 
     def qpixmapToImage2(self, qimage) -> Image:
         # Convert QImage to numpy array (raw data)
@@ -186,10 +181,33 @@ class ProcessCanvas(QWidget):
         )
         self.update()
 
+    def crop(self) -> None:
+        if self.input_image is None:
+            return
+        self.cropping = not self.cropping
+
     def saveImage(self) -> None:
         if self.input_image is None:
             return
         self.input_image.save("test.png")
+
+    def paintEvent(self, event) -> None:
+        # QTs function, updates the canvas
+        if self.input_image is None:
+            return
+
+        painter = QPainter(self)
+        transform = QTransform()
+        transform.scale(self.scale_factor, self.scale_factor)
+        transform.translate(self.cur_pos.x(), self.cur_pos.y())
+        painter.setTransform(transform)
+        painter.drawPixmap(0, 0, QPixmap.fromImage(self.input_image))
+
+        if self.cropping and self.crop_pressed:
+            painter.drawRect(self.crop_start_pos.x(),
+                             self.crop_start_pos.y(),
+                             self.crop_end_pos.x(),
+                             self.crop_end_pos.y())
 
     # Mouse events for moving the image around and zooming in
     def wheelEvent(self, event):
@@ -200,8 +218,12 @@ class ProcessCanvas(QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            self.dragging = True
-            self.start_pos = event.pos() - self.last_pos * self.scale_factor
+            if self.cropping:
+                self.crop_start_pos = event.pos() - self.last_pos
+                self.crop_pressed = True
+            else:
+                self.dragging = True
+                self.start_pos = event.pos() - self.last_pos * self.scale_factor
 
     def mouseMoveEvent(self, event):
         if self.dragging:
@@ -209,8 +231,15 @@ class ProcessCanvas(QWidget):
             self.cur_pos = (self.delta - self.start_pos) / self.scale_factor
             self.last_pos = self.cur_pos
             self.update()
+        elif self.cropping:
+            self.delta = event.pos()
+            self.crop_end_pos = (self.delta - self.crop_start_pos - self.last_pos) / self.scale_factor
+            self.update()
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
-            self.dragging = False
-
+            if self.dragging:
+                self.dragging = False
+            elif self.cropping:
+                self.cropping = False
+                self.crop_pressed = False

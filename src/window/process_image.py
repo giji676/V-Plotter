@@ -36,6 +36,7 @@ class ProcessImage(QWidget):
         self.btn_make_path = QPushButton("Make Path")
         self.btn_convert_to_steps = QPushButton("Convert to steps")
         self.btn_save_image = QPushButton("Save Image")
+        self.btn_crop = QPushButton("Crop")
         self.cbx_wave_smooth = QCheckBox("Use Wave Smoother")
         self.cbx_min_pen_pickup = QCheckBox("Use Minimum Pen Pickup Distance")
 
@@ -58,6 +59,7 @@ class ProcessImage(QWidget):
         self.btn_convert_to_steps.clicked.connect(self.image_canvas.convertToSteps)
         self.btn_convert_to_steps.setObjectName("testBtn")
         self.btn_save_image.clicked.connect(self.image_canvas.saveImage)
+        self.btn_crop.clicked.connect(self.image_canvas.crop)
 
         self.vertical_spacer = QSpacerItem(
             0, 20, QSizePolicy.Fixed, QSizePolicy.Expanding
@@ -77,9 +79,10 @@ class ProcessImage(QWidget):
         self.lyt_inputs.addWidget(self.btn_remove_BG, 4, 1)
         self.lyt_inputs.addWidget(self.btn_make_path, 5, 0)
         self.lyt_inputs.addWidget(self.btn_convert_to_steps, 5, 1)
-        self.lyt_inputs.addWidget(self.btn_save_image, 6, 0)
-        self.lyt_inputs.addWidget(self.cbx_wave_smooth, 6, 1)
-        self.lyt_inputs.addWidget(self.cbx_min_pen_pickup, 7, 0)
+        self.lyt_inputs.addWidget(self.btn_crop, 6, 0)
+        self.lyt_inputs.addWidget(self.btn_save_image, 6, 1)
+        self.lyt_inputs.addWidget(self.cbx_wave_smooth, 7, 0)
+        self.lyt_inputs.addWidget(self.cbx_min_pen_pickup, 8, 0)
 
         self.lyt_inputs.addWidget(self.lbl_output, 9, 0)
         self.lyt_inputs.addWidget(self.output_text_edit, 10, 0, 1, 2)
