@@ -36,9 +36,6 @@ class WorkerThread(QThread):
 
     def wave(self, image: Image) -> Image:
         # Converts the image to waves
-        if not image:
-            return None
-
         f = open(constants.OUTPUT_COODINATES_PATH, "w")
 
         self.update_signal.emit("Starting conversion to wave")
@@ -46,9 +43,12 @@ class WorkerThread(QThread):
 
         # Range of wave values: 0 = horizontal line, max = dense wave - hight amplitude and frequency
         scaled_colour_range = 10
-        pixel_wave_size = 40
+        pixel_wave_size_x = 10
+        pixel_wave_size_y = 40
+        aspect_ratio = pixel_wave_size_y / pixel_wave_size_x
+        image = image.resize((image.width, int(image.height / aspect_ratio)))
 
-        amplitude_mult = pixel_wave_size / scaled_colour_range / 2
+        amplitude_mult = pixel_wave_size_y / scaled_colour_range / 2
 
         pixels = np.array(image)
         height, width = pixels.shape
@@ -59,7 +59,7 @@ class WorkerThread(QThread):
             )
 
             processed_wave = wave_smoother_standalone.process(wave_function_arr)
-            processed_height, processed_width = len(processed_wave) * pixel_wave_size, len(
+            processed_height, processed_width = len(processed_wave) * pixel_wave_size_y, len(
                 processed_wave[0]
             )
 
@@ -69,10 +69,10 @@ class WorkerThread(QThread):
             for y in range(len(processed_wave)):
                 for x in range(processed_width-1):
                     self.update_signal.emit(
-                        f"{str((y*width)+int(x/pixel_wave_size)+1)}/{str(height*width)}, {str(round(time.time() - start_time, 3))}"
+                        f"{str((y*width)+int(x/pixel_wave_size_x)+1)}/{str(height*width)}, {str(round(time.time() - start_time, 3))}"
                     )
 
-                    y_offset = y * pixel_wave_size + pixel_wave_size / 2
+                    y_offset = y * pixel_wave_size_y + pixel_wave_size_y / 2
                     draw.line(((x, y_offset + processed_wave[y][x]), (x+1, y_offset + processed_wave[y][x+1])), fill=(0, 0, 0))
 
                     f.write(str(x) + " " + str(round(y_offset + processed_wave[y][x])) + "\n")
@@ -83,7 +83,8 @@ class WorkerThread(QThread):
 
             return image
 
-        new_height, new_width = height * pixel_wave_size, width * pixel_wave_size
+
+        new_height, new_width = height * pixel_wave_size_y, width * pixel_wave_size_x
 
         image = Image.new("RGB", (new_width, new_height), color="white")
         draw = ImageDraw.Draw(image)
@@ -107,33 +108,33 @@ class WorkerThread(QThread):
                 amplitude = pixels[y, n_x] * amplitude_mult
 
                 # For each pixel of the processed image, <pixel_wave_size> x <pixel_wave_size> "super pixel" is created, that holds the wave for that pixel
-                for i in range(pixel_wave_size):
+                for i in range(pixel_wave_size_x):
                     n_i = i
                     n_offset = 1
                     if y % 2 != 0:
-                        n_i = 0 - i + pixel_wave_size
+                        n_i = 0 - i + pixel_wave_size_x
                         n_offset = -1
 
                     # Calculate the current pixel coordinates and the next pixel coordinates, so they can be joined with a line
-                    x_pos = n_x * pixel_wave_size + n_i
-                    y_pos = (y * pixel_wave_size + pixel_wave_size / 2) + (
-                        np.sin((n_i) / (pixel_wave_size / 2)
+                    x_pos = n_x * pixel_wave_size_x + n_i
+                    y_pos = (y * pixel_wave_size_y + pixel_wave_size_y / 2) + (
+                        np.sin((n_i) / (pixel_wave_size_y / 2)
                                * frequency * np.pi)
                         * amplitude
                     )
 
-                    next_x_pos = n_x * pixel_wave_size + n_i + n_offset
-                    next_y_pos = (y * pixel_wave_size + pixel_wave_size / 2) + (
+                    next_x_pos = n_x * pixel_wave_size_x + n_i + n_offset
+                    next_y_pos = (y * pixel_wave_size_y + pixel_wave_size_y / 2) + (
                         np.sin(
                             (n_i + n_offset) /
-                            (pixel_wave_size / 2) * frequency * np.pi
+                            (pixel_wave_size_y / 2) * frequency * np.pi
                         )
                         * amplitude
                     )
                     f.write(str(x_pos) + " " + str(round(y_pos)) + "\n")
 
                     draw.line(
-                        ((x_pos, y_pos), (next_x_pos, next_y_pos)), fill=(0, 0, 0)
+                        ((x_pos, y_pos), (next_x_pos, next_y_pos)), fill=(0, 0, 0), width=2
                     )
         f.close()
         self.result = (

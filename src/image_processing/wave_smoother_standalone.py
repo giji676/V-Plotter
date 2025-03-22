@@ -5,12 +5,13 @@ fEnd, gStart = (
     20,
 )  # fEnd = where the function f will end, gStart = where the function g will start
 
-pixel_size = 20
+pixel_wave_size_x = 10
+pixel_wave_size_y = 40
 minX, maxX = 0, 40  # min and max values of the x axis
 
 
 def wave(x, frequency, amplitude):
-    return np.sin(x / (pixel_size / 2) * frequency * np.pi) * amplitude
+    return np.sin(x / (pixel_wave_size_y / 2) * frequency * np.pi) * amplitude
 
 
 def psi(x):  # Ψ or "psi" function
@@ -44,10 +45,10 @@ def smooth(x_smoothed, a, b, x1, x2, f1, a1, f2, a2):
     ) * wave(x_smoothed, f2, a2)
 
 
-smoothing_start, smoothing_finish = pixel_size - pixel_size/2, pixel_size + pixel_size/2
-initial_append = [0, pixel_size + pixel_size/2]
-intermidiet_append = [pixel_size/2, pixel_size/2+pixel_size]
-end_append = [pixel_size/2, pixel_size + pixel_size/2]
+smoothing_start, smoothing_finish = pixel_wave_size_x - pixel_wave_size_x/2, pixel_wave_size_x + pixel_wave_size_x/2
+initial_append = [0, pixel_wave_size_x + pixel_wave_size_x/2]
+intermidiet_append = [pixel_wave_size_x/2, pixel_wave_size_x/2+pixel_wave_size_x]
+end_append = [pixel_wave_size_x/2, pixel_wave_size_x + pixel_wave_size_x/2]
 
 
 def process(arr):
@@ -63,10 +64,10 @@ def process(arr):
 
             f1, a1 = arr[j][n_i]
             f2, a2 = arr[j][n_i + n_offset]
-            x1 = np.linspace(minX, fEnd - 1, pixel_size)
-            x2 = np.linspace(gStart, maxX - 1, pixel_size)
+            x1 = np.linspace(minX, fEnd - 1, pixel_wave_size_x)
+            x2 = np.linspace(gStart, maxX - 1, pixel_wave_size_x)
 
-            x_smoothed = np.linspace(minX, maxX - 1, pixel_size * 2)
+            x_smoothed = np.linspace(minX, maxX - 1, pixel_wave_size_x * 2)
             y_smoothed = smooth(
                 x_smoothed, smoothing_start, smoothing_finish, x1, x2, f1, a1, f2, a2
             )
