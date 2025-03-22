@@ -1,8 +1,8 @@
 import numpy as np
 
 scaled_colour_range = 10
-pixel_wave_size = 20
-max_amplitude = pixel_wave_size / 2
+pixel_wave_size = 40
+amplitude_mult = pixel_wave_size / scaled_colour_range / 2
 
 # returns array of the waves and their multipliers
 def genWave(pixels: np.array):
@@ -21,14 +21,8 @@ def genWave(pixels: np.array):
             frequency = 0
 
             pixels[y, n_x] = round(pixels[y, n_x] / ((2**8)/scaled_colour_range))
-            # If the pixel value is under half of the <scaled_colour_range> only increase the amplitude
-            if pixels[y, n_x] < scaled_colour_range / 2:
-                frequency = 1
-                amplitude = pixels[y, n_x]
-            # If the pixel value is over half of the <scaled_colour_range> use max amplitude and increase frequency
-            else:
-                frequency = pixels[y, n_x] - scaled_colour_range / 2 + 1
-                amplitude = max_amplitude
+            frequency = pixels[y, n_x]
+            amplitude = pixels[y, n_x] * amplitude_mult
 
             wave_function_row_arr.append([frequency, amplitude])
         wave_function_arr.append(wave_function_row_arr)

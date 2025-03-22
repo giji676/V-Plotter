@@ -46,9 +46,9 @@ class WorkerThread(QThread):
 
         # Range of wave values: 0 = horizontal line, max = dense wave - hight amplitude and frequency
         scaled_colour_range = 10
-        pixel_wave_size = 20
+        pixel_wave_size = 40
 
-        max_amplitude = pixel_wave_size / 2
+        amplitude_mult = pixel_wave_size / scaled_colour_range / 2
 
         pixels = np.array(image)
         height, width = pixels.shape
@@ -103,13 +103,8 @@ class WorkerThread(QThread):
                 pixels[y, n_x] = round(
                     pixels[y, n_x] / ((2**8)/scaled_colour_range))
                 # If the pixel value is under half of the <scaled_colour_range> only increase the amplitude
-                if pixels[y, n_x] < scaled_colour_range / 2:
-                    frequency = 1
-                    amplitude = pixels[y, n_x]
-                # If the pixel value is over half of the <scaled_colour_range> use max amplitude and increase frequency
-                else:
-                    frequency = pixels[y, n_x] - scaled_colour_range / 2 + 1
-                    amplitude = max_amplitude
+                frequency = pixels[y, n_x]
+                amplitude = pixels[y, n_x] * amplitude_mult
 
                 # For each pixel of the processed image, <pixel_wave_size> x <pixel_wave_size> "super pixel" is created, that holds the wave for that pixel
                 for i in range(pixel_wave_size):
@@ -142,7 +137,7 @@ class WorkerThread(QThread):
                     )
         f.close()
         self.result = (
-            f"\nTotal run time: {round(time.time() - start_time, 3)} seconds\n"
+            f"\nScan lines: {height}\nTotal run time: {round(time.time() - start_time, 3)} seconds\n"
         )
 
         self.finish_signal.emit()

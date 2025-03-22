@@ -18,6 +18,8 @@ class MyWindow(QMainWindow):
         self.tab_process_image = ProcessImage()
 
         self.tab_process_image.image_canvas.settings = self.tab_configure_machine.settings
+        # vvvv temp
+        self.tab_process_image.image_canvas.loadImage(r"C:\Users\tvten\Desktop\F16.png")
 
         tab_widget.addTab(self.tab_process_image, "Process Image")
         tab_widget.addTab(self.tab_configure_machine, "Configure Machine")
