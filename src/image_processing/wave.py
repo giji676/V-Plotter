@@ -31,9 +31,9 @@ def wave(image: Image,
     wave_aspect_ratio = (line_frequency * size_x)/og_width
     size_y = int(og_height * wave_aspect_ratio / lines)
     amp_mult = size_y/2/color_range
-    image = image.resize((line_frequency, lines))
+    img = image.resize((line_frequency, lines))
 
-    pixels = np.array(image)
+    pixels = np.array(img)
     height, width = pixels.shape
     new_height, new_width = height * size_y, width * size_x
 
@@ -61,4 +61,4 @@ def wave(image: Image,
                 y_pos_local = pre_computed_wave[i_+1]
                 y_pos_n = (y * size_y + size_y / 2) + y_pos_local
                 draw.line(((x_pos, y_pos), (x_pos_n, y_pos_n)), fill=fill, width=2)
-    return image
+    return image

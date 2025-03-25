@@ -38,17 +38,41 @@ class WorkerThread(QThread):
     def wave(self, image: Image) -> Image:
         # Converts the image to waves
         f = open(constants.OUTPUT_COODINATES_PATH, "w")
+        benchmark = False
+        if benchmark:
+            times = []
+            img = None
+            for _ in range(5):
+                start_time = time.time()
+                self.update_signal.emit("Starting conversion to wave")
+                img = wave(image,
+                         self.update_signal,
+                         line_frequency=int(image.width/2),
+                         lines=100,
+                         color_range=20,
+                         size_x=20)
+                time_took = time.time() - start_time
+                times.append(time_took)
+                self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
+            self.update_signal.emit(f"Average time: {round(sum(times)/len(times), 3)} seconds")
+            img.show()
+            # Average:20: 7.347
+            # Average:5: 7.233
 
-        start_time = time.time()
-        self.update_signal.emit("Starting conversion to wave")
-        image = wave(image,
+            self.finish_signal.emit()
+        else:
+            start_time = time.time()
+            self.update_signal.emit("Starting conversion to wave")
+            img = wave(image,
                      self.update_signal,
                      line_frequency=int(image.width/2),
                      lines=100,
                      color_range=20,
                      size_x=20)
-        self.update_signal.emit(f"Finished in: {round(time.time() - start_time, 3)} seconds")
-        self.finish_signal.emit()
+            time_took = time.time() - start_time
+            self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
+            self.finish_signal.emit()
+            img.show()
 
         return image
 
