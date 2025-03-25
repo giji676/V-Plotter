@@ -6,6 +6,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from PIL import Image, ImageDraw
 
 from src.image_processing import dithering, wave_smoother, wave_smoother_standalone
+from src.image_processing.wave import wave
 from . import FunctionTypeEnum, constants
 
 
@@ -39,9 +40,12 @@ class WorkerThread(QThread):
         f = open(constants.OUTPUT_COODINATES_PATH, "w")
 
         self.update_signal.emit("Starting conversion to wave")
+        image = wave(image, image.width, 50, 20, 20)
+        self.finish_signal.emit()
+
+        return image
         start_time = time.time()
 
-        # Range of wave values: 0 = horizontal line, max = dense wave - hight amplitude and frequency
         scaled_colour_range = 10
         pixel_wave_size_x = 10
         pixel_wave_size_y = 40
@@ -52,37 +56,6 @@ class WorkerThread(QThread):
 
         pixels = np.array(image)
         height, width = pixels.shape
-
-        if self.wave_smooth:
-            wave_function_arr = wave_smoother.genWave(
-                pixels
-            )
-
-            processed_wave = wave_smoother_standalone.process(wave_function_arr)
-            processed_height, processed_width = len(processed_wave) * pixel_wave_size_y, len(
-                processed_wave[0]
-            )
-
-            image = Image.new("RGB", (processed_width, processed_height), color="white")
-            draw = ImageDraw.Draw(image)
-
-            for y in range(len(processed_wave)):
-                for x in range(processed_width-1):
-                    self.update_signal.emit(
-                        f"{str((y*width)+int(x/pixel_wave_size_x)+1)}/{str(height*width)}, {str(round(time.time() - start_time, 3))}"
-                    )
-
-                    y_offset = y * pixel_wave_size_y + pixel_wave_size_y / 2
-                    draw.line(((x, y_offset + processed_wave[y][x]), (x+1, y_offset + processed_wave[y][x+1])), fill=(0, 0, 0))
-
-                    f.write(str(x) + " " + str(round(y_offset + processed_wave[y][x])) + "\n")
-
-            f.close()
-            self.result = (f"\nTotal run time: {round(time.time() - start_time, 3)} seconds\n")
-            self.finish_signal.emit()
-
-            return image
-
 
         new_height, new_width = height * pixel_wave_size_y, width * pixel_wave_size_x
 

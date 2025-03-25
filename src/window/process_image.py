@@ -113,7 +113,7 @@ class ProcessImage(QWidget):
     def startWave(self):
         if self.image_canvas.input_image is None:
             return
-        image = self.image_canvas.qimageToPil(self.image_canvas.input_image).convert("L")
+        image = self.image_canvas.qpixmapToImage2(self.image_canvas.input_image).convert("L")
         #image = Image.fromqpixmap(self.image_canvas.input_image).convert("L")
         image = ImageOps.invert(image)
 
