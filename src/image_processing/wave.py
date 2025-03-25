@@ -3,7 +3,8 @@ from PIL import Image, ImageDraw
 from PyQt5.QtCore import pyqtSignal
 
 # Alternate between red and black fill for every pixel for debug clarity
-fills = ((255,0,0), (0,0,0))
+#fills = ((255,0,0), (0,0,0))
+fills = ((0,0,0))
 
 def waveAt(x, freq):
     return np.sin(x * np.pi*2 * freq)
@@ -16,16 +17,16 @@ def preCompute(color_range, size, sampling_rate_, amp_mult):
         if i <= 3:
             sampling_rate = 1
         for j in range(size * sampling_rate):
-            temp.append(waveAt(j/(size*sampling_rate), i/2) * i * amp_mult)
+            temp.append(waveAt(j/(size*sampling_rate-1), int(i/2)) * i * amp_mult)
         pre_computed.append(temp)
     return pre_computed
 
 def wave(image: Image,
-         line_frequency,
-         lines,
-         color_range,
-         size_x,
-         update_signal: pyqtSignal) -> Image:
+         update_signal: pyqtSignal,
+         line_frequency=400,
+         lines=100,
+         color_range=10,
+         size_x=20) -> Image:
     og_width, og_height = image.width, image.height
     wave_aspect_ratio = (line_frequency * size_x)/og_width
     size_y = int(og_height * wave_aspect_ratio / lines)

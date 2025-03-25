@@ -41,7 +41,12 @@ class WorkerThread(QThread):
 
         start_time = time.time()
         self.update_signal.emit("Starting conversion to wave")
-        image = wave(image, int(image.width/2), 100, 20, 20, self.update_signal)
+        image = wave(image,
+                     self.update_signal,
+                     line_frequency=int(image.width/2),
+                     lines=100,
+                     color_range=20,
+                     size_x=20)
         self.update_signal.emit(f"Finished in: {round(time.time() - start_time, 3)} seconds")
         self.finish_signal.emit()
 
