@@ -3,9 +3,9 @@ import subprocess
 import numpy as np
 
 from PyQt5.QtCore import QThread, pyqtSignal
-from PIL import Image, ImageDraw
+from PIL import Image
 
-from src.image_processing import dithering, wave_smoother, wave_smoother_standalone
+from src.image_processing import dithering
 from src.image_processing.wave import wave
 from . import FunctionTypeEnum, constants
 
@@ -39,81 +39,10 @@ class WorkerThread(QThread):
         # Converts the image to waves
         f = open(constants.OUTPUT_COODINATES_PATH, "w")
 
-        self.update_signal.emit("Starting conversion to wave")
-        image = wave(image, int(image.width/2), 100, 20, 20)
-        self.finish_signal.emit()
-
-        return image
         start_time = time.time()
-
-        scaled_colour_range = 10
-        pixel_wave_size_x = 10
-        pixel_wave_size_y = 40
-        aspect_ratio = pixel_wave_size_y / pixel_wave_size_x
-        image = image.resize((image.width, int(image.height / aspect_ratio)))
-
-        amplitude_mult = pixel_wave_size_y / scaled_colour_range / 2
-
-        pixels = np.array(image)
-        height, width = pixels.shape
-
-        new_height, new_width = height * pixel_wave_size_y, width * pixel_wave_size_x
-
-        image = Image.new("RGB", (new_width, new_height), color="white")
-        draw = ImageDraw.Draw(image)
-
-        for y in range(height):
-            for x in range(width):
-                self.update_signal.emit(
-                    f"{str((y*width)+x)}/{str(height*width-1)}, {str(round(time.time() - start_time, 3))}"
-                )
-                n_x = x
-                # Every other y level needs to start from the end so the other of the horizontal lines is: left-right-right-left...
-                if y % 2 != 0:
-                    n_x = width - 1 - x
-                amplitude = 0
-                frequency = 0
-
-                pixels[y, n_x] = round(
-                    pixels[y, n_x] / ((2**8)/scaled_colour_range))
-                # If the pixel value is under half of the <scaled_colour_range> only increase the amplitude
-                frequency = pixels[y, n_x]
-                amplitude = pixels[y, n_x] * amplitude_mult
-
-                # For each pixel of the processed image, <pixel_wave_size> x <pixel_wave_size> "super pixel" is created, that holds the wave for that pixel
-                for i in range(pixel_wave_size_x):
-                    n_i = i
-                    n_offset = 1
-                    if y % 2 != 0:
-                        n_i = 0 - i + pixel_wave_size_x
-                        n_offset = -1
-
-                    # Calculate the current pixel coordinates and the next pixel coordinates, so they can be joined with a line
-                    x_pos = n_x * pixel_wave_size_x + n_i
-                    y_pos = (y * pixel_wave_size_y + pixel_wave_size_y / 2) + (
-                        np.sin((n_i) / (pixel_wave_size_y / 2)
-                               * frequency * np.pi)
-                        * amplitude
-                    )
-
-                    next_x_pos = n_x * pixel_wave_size_x + n_i + n_offset
-                    next_y_pos = (y * pixel_wave_size_y + pixel_wave_size_y / 2) + (
-                        np.sin(
-                            (n_i + n_offset) /
-                            (pixel_wave_size_y / 2) * frequency * np.pi
-                        )
-                        * amplitude
-                    )
-                    f.write(str(x_pos) + " " + str(round(y_pos)) + "\n")
-
-                    draw.line(
-                        ((x_pos, y_pos), (next_x_pos, next_y_pos)), fill=(0, 0, 0), width=2
-                    )
-        f.close()
-        self.result = (
-            f"\nScan lines: {height}\nTotal run time: {round(time.time() - start_time, 3)} seconds\n"
-        )
-
+        self.update_signal.emit("Starting conversion to wave")
+        image = wave(image, int(image.width/2), 100, 20, 20, self.update_signal)
+        self.update_signal.emit(f"Finished in: {round(time.time() - start_time, 3)} seconds")
         self.finish_signal.emit()
 
         return image
