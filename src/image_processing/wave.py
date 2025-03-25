@@ -23,7 +23,7 @@ def wave_(image: Image, line_frequency, lines, color_range, size_x) -> Image:
             fill = fills[x%2]
             pixels[y, x] = round(pixels[y, x] / (256 / color_range))
 
-            freq = pixels[y, x]
+            freq = int(pixels[y, x]/2)
             amp = pixels[y, x]
             sample_per_wave = 10
             a = color_range * sample_per_wave
@@ -49,7 +49,7 @@ def preCompute(color_range, size, sampling_rate_):
         if i <= 3:
             sampling_rate = 1
         for j in range(size * sampling_rate):
-            temp.append(waveAt(j/(size*sampling_rate), i))
+            temp.append(waveAt(j/(size*sampling_rate), i) * i)
         pre_computed.append(temp)
     return pre_computed
 
@@ -74,23 +74,22 @@ def wave(image: Image, line_frequency, lines, color_range, size_x) -> Image:
             fill = fills[x%2]
             pixels[y, x] = round(pixels[y, x] / (256 / color_range))
 
-            freq = pixels[y, x]
-            amp = pixels[y, x]
-            if (freq == 0):
+            pixel = pixels[y, x]
+            if (pixel == 0):
                 x_pos = x * size_x
-                y_pos = (y * size_y + size_y / 2)
+                y_pos = y * size_y + size_y / 2
                 x_pos_n = x * size_x + size_x - 1
-                draw.line(((x_pos, y_pos), x_pos_n, y_pos), fill=fill)
+                draw.line(((x_pos, y_pos), (x_pos_n, y_pos)), fill=fill)
                 continue
-            pre_computed_wave = pre_computed[freq]
+            pre_computed_wave = pre_computed[pixel]
             for i_ in range(len(pre_computed_wave)-1):
                 i = i_/(len(pre_computed_wave)/size_x)
                 x_pos = x * size_x + i
-                y_pos_local = pre_computed_wave[i_] * amp
+                y_pos_local = pre_computed_wave[i_]
                 y_pos = (y * size_y + size_y / 2) + y_pos_local
 
                 x_pos_n = x * size_x + i + 1
-                y_pos_local = pre_computed_wave[i_+1] * amp
+                y_pos_local = pre_computed_wave[i_+1]
                 y_pos_n = (y * size_y + size_y / 2) + y_pos_local
                 draw.line(((x_pos, y_pos), (x_pos_n, y_pos_n)), fill=fill)
     print("finished")
