@@ -40,7 +40,7 @@ class WorkerThread(QThread):
         f = open(constants.OUTPUT_COODINATES_PATH, "w")
 
         self.update_signal.emit("Starting conversion to wave")
-        image = wave(image, image.width, 50, 20, 20)
+        image = wave(image, int(image.width/2), 100, 20, 20)
         self.finish_signal.emit()
 
         return image
