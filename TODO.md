@@ -8,7 +8,7 @@ FEATURES:
     SplashScreen //
     fix wave smoothing
     finish cropping
-    dropdown to select processingtype (wave, tsp...)
+    dropdown to select processingtype (wave, tsp...) //
 
 OPTIMISATIONS:
     change numpy to lighter alt?
