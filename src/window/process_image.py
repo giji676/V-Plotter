@@ -38,6 +38,15 @@ class ProcessImage(QWidget):
         self.cbx_min_pen_pickup = QCheckBox("Use Minimum Pen Pickup Distance")
         self.cmb_processing_selector = QComboBox()
 
+        self.lbl_lines = QLabel("Lines")
+        self.txt_lines = QLineEdit("100")
+        self.lbl_frequency = QLabel("Frequency")
+        self.txt_frequency = QLineEdit("400")
+        self.lbl_color_range = QLabel("Color range")
+        self.txt_color_range = QLineEdit("10")
+        self.lbl_size_x = QLabel("Single wave width")
+        self.txt_size_x = QLineEdit("20")
+
     def setupUI(self) -> None:
         self.left_input_panel = QWidget()
         self.left_input_panel.setStyleSheet("background-color: #EEE;")
@@ -125,8 +134,17 @@ class ProcessImage(QWidget):
         frame = QFrame()
 
         lyt_frame = QGridLayout(frame)
-        lyt_frame.addWidget(self.btn_wave, 0, 0)
-        lyt_frame.addWidget(self.cbx_wave_smooth, 0, 1)
+
+        lyt_frame.addWidget(self.lbl_lines, 0, 0)
+        lyt_frame.addWidget(self.txt_lines, 0, 1)
+        lyt_frame.addWidget(self.lbl_frequency, 1, 0)
+        lyt_frame.addWidget(self.txt_frequency, 1, 1)
+        lyt_frame.addWidget(self.lbl_color_range, 2, 0)
+        lyt_frame.addWidget(self.txt_color_range, 2, 1)
+        lyt_frame.addWidget(self.lbl_size_x, 3, 0)
+        lyt_frame.addWidget(self.txt_size_x, 3, 1)
+        lyt_frame.addWidget(self.cbx_wave_smooth, 4, 0)
+        lyt_frame.addWidget(self.btn_wave, 4, 1)
 
         return frame
 
