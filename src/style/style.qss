@@ -41,3 +41,19 @@ QLabel {
 QTabWidget {
     font: 12px;
 }
+
+QComboBox {
+    background-color: lightgrey;
+    border: 2px solid;
+    border-radius: 5px;
+    border-color: darkgrey;
+    color: black;
+    font: 18px;
+    padding: 10px;
+}
+
+QCheckBox {
+    color: black;
+    font: 18px;
+    padding: 10px;
+}
