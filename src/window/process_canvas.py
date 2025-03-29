@@ -6,7 +6,7 @@ from rembg import remove, new_session
 
 from PIL import Image
 from PyQt5.QtCore import QPoint, Qt
-from PyQt5.QtGui import QColor, QImage, QPainter, QPixmap, QTransform, QPen
+from PyQt5.QtGui import QColor, QImage, QPainter, QPixmap, QTransform
 from PyQt5.QtWidgets import QWidget
 
 from src.utils import constants, path_maker, to_steps

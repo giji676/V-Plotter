@@ -5,7 +5,8 @@ from PyQt5.QtGui import QImage
 from PyQt5.QtWidgets import (QFileDialog, QGridLayout,
                              QHBoxLayout, QLabel, QLineEdit,
                              QPushButton, QSizePolicy, QSpacerItem,
-                             QTextEdit, QWidget, QCheckBox)
+                             QTextEdit, QWidget, QCheckBox, QComboBox,
+                             QFrame)
 
 from src.utils import constants, svg_parser, FunctionTypeEnum, WorkerThread
 from .process_canvas import ProcessCanvas
@@ -14,14 +15,10 @@ from .process_canvas import ProcessCanvas
 class ProcessImage(QWidget):
     def __init__(self):
         super().__init__()
+        self.createUIWidgets()
         self.setupUI()
 
-    def setupUI(self) -> None:
-        self.left_input_panel = QWidget()
-        self.left_input_panel.setStyleSheet("background-color: #EEE;")
-        self.image_canvas = ProcessCanvas()
-        self.image_canvas.process_image_window = self
-
+    def createUIWidgets(self) -> None:
         # Creating the lables and inputs
         self.btn_open_image = QPushButton("Open Image")
         self.btn_clear_all = QPushButton("Clear All")
@@ -32,13 +29,27 @@ class ProcessImage(QWidget):
         self.btn_colourscale = QPushButton("Colour scale")
         self.btn_dither = QPushButton("Dither")
         self.btn_wave = QPushButton("Wave")
-        self.btn_remove_BG = QPushButton("Remove BG")
+        self.btn_remove_bg = QPushButton("Remove BG")
         self.btn_make_path = QPushButton("Make Path")
         self.btn_convert_to_steps = QPushButton("Convert to steps")
         self.btn_save_image = QPushButton("Save Image")
         self.btn_crop = QPushButton("Crop")
         self.cbx_wave_smooth = QCheckBox("Use Wave Smoother")
         self.cbx_min_pen_pickup = QCheckBox("Use Minimum Pen Pickup Distance")
+        self.cmb_processing_selector = QComboBox()
+
+    def setupUI(self) -> None:
+        self.left_input_panel = QWidget()
+        self.left_input_panel.setStyleSheet("background-color: #EEE;")
+        self.image_canvas = ProcessCanvas()
+        self.image_canvas.process_image_window = self
+
+        self.cmb_processing_selector.addItems(["Select Processing Type", "TSP", "Wave"])
+        self.cmb_processing_selector.currentTextChanged.connect(self.onProcessingChange)
+
+        self.frames = {}
+        self.frames["TSP"] = self.createTSPFrame()
+        self.frames["Wave"] = self.createWaveFrame()
 
         self.lbl_output = QLabel("Output")
         self.output_text_edit = QTextEdit()
@@ -52,37 +63,36 @@ class ProcessImage(QWidget):
         self.btn_grayscale.clicked.connect(self.image_canvas.grayscale)
         self.btn_dither.clicked.connect(self.startDither)
         self.btn_wave.clicked.connect(self.startWave)
-        self.btn_remove_BG.clicked.connect(self.image_canvas.removeBg)
-        self.btn_colourscale.clicked.connect(
-        self.image_canvas.quantizeGrayscaleImage)
+        self.btn_remove_bg.clicked.connect(self.image_canvas.removeBg)
+        self.btn_colourscale.clicked.connect( self.image_canvas.quantizeGrayscaleImage)
         self.btn_make_path.clicked.connect(self.startLinkern)
         self.btn_convert_to_steps.clicked.connect(self.image_canvas.convertToSteps)
         self.btn_convert_to_steps.setObjectName("testBtn")
         self.btn_save_image.clicked.connect(self.image_canvas.saveImage)
         self.btn_crop.clicked.connect(self.image_canvas.crop)
 
-        self.vertical_spacer = QSpacerItem(
-            0, 20, QSizePolicy.Fixed, QSizePolicy.Expanding
-        )
+        self.vertical_spacer = QSpacerItem(0, 20, QSizePolicy.Fixed, QSizePolicy.Expanding)
 
         # Adding the lables and inputs to the layout
         self.lyt_inputs = QGridLayout()
         self.lyt_inputs.addWidget(self.btn_open_image, 0, 0)
-        self.lyt_inputs.addWidget(self.btn_clear_all, 0, 1)
-        self.lyt_inputs.addWidget(self.btn_scale, 1, 0)
-        self.lyt_inputs.addWidget(self.txt_scale, 1, 1)
-        self.lyt_inputs.addWidget(self.btn_rotate_90, 2, 0)
-        self.lyt_inputs.addWidget(self.btn_grayscale, 2, 1)
-        self.lyt_inputs.addWidget(self.btn_colourscale, 3, 0)
-        self.lyt_inputs.addWidget(self.btn_dither, 3, 1)
-        self.lyt_inputs.addWidget(self.btn_wave, 4, 0)
-        self.lyt_inputs.addWidget(self.btn_remove_BG, 4, 1)
-        self.lyt_inputs.addWidget(self.btn_make_path, 5, 0)
-        self.lyt_inputs.addWidget(self.btn_convert_to_steps, 5, 1)
-        self.lyt_inputs.addWidget(self.btn_crop, 6, 0)
-        self.lyt_inputs.addWidget(self.btn_save_image, 6, 1)
-        self.lyt_inputs.addWidget(self.cbx_wave_smooth, 7, 0)
-        self.lyt_inputs.addWidget(self.cbx_min_pen_pickup, 8, 0)
+        self.lyt_inputs.addWidget(self.btn_save_image, 0, 1)
+        self.lyt_inputs.addWidget(self.btn_clear_all, 1, 0)
+        self.lyt_inputs.addWidget(self.btn_rotate_90, 1, 1)
+        self.lyt_inputs.addWidget(self.btn_scale, 2, 0)
+        self.lyt_inputs.addWidget(self.txt_scale, 2, 1)
+        self.lyt_inputs.addWidget(self.btn_grayscale, 3, 0)
+        self.lyt_inputs.addWidget(self.btn_colourscale, 3, 1)
+        self.lyt_inputs.addWidget(self.btn_remove_bg, 4, 0)
+        self.lyt_inputs.addWidget(self.btn_crop, 4, 1)
+        self.lyt_inputs.addWidget(self.cmb_processing_selector, 5, 0, 1, 2)
+
+        for frame in self.frames.values():
+            self.lyt_inputs.addWidget(frame, 6, 0, 1, 2)
+            frame.setVisible(False)
+
+        self.lyt_inputs.addWidget(self.cbx_min_pen_pickup, 7, 0)
+        self.lyt_inputs.addWidget(self.btn_convert_to_steps, 8, 0, 1, 2)
 
         self.lyt_inputs.addWidget(self.lbl_output, 9, 0)
         self.lyt_inputs.addWidget(self.output_text_edit, 10, 0, 1, 2)
@@ -104,11 +114,35 @@ class ProcessImage(QWidget):
 
         self.setLayout(self.lyt_process_image_tab)
 
+    def onProcessingChange(self, val):
+        for frame in self.frames.values():
+            frame.setVisible(False)
+
+        if val in self.frames:
+            self.frames[val].setVisible(True)
+
+    def createWaveFrame(self) -> QFrame:
+        frame = QFrame()
+
+        lyt_frame = QGridLayout(frame)
+        lyt_frame.addWidget(self.btn_wave, 0, 0)
+        lyt_frame.addWidget(self.cbx_wave_smooth, 0, 1)
+
+        return frame
+
+    def createTSPFrame(self) -> QFrame:
+        frame = QFrame()
+
+        lyt_frame = QGridLayout(frame)
+        lyt_frame.addWidget(self.btn_dither, 0, 0)
+        lyt_frame.addWidget(self.btn_make_path, 0, 1)
+
+        return frame
+
     def startLinkern(self):
         if os.path.exists(constants.TSP_PATH):
             self.worker_thread.function_type = FunctionTypeEnum.LINKERN
             self.worker_thread.start()
-
 
     def startWave(self):
         if self.image_canvas.input_image is None:
@@ -121,7 +155,6 @@ class ProcessImage(QWidget):
         self.worker_thread.wave_smooth = self.cbx_wave_smooth.isChecked()
         self.worker_thread.image = image
         self.worker_thread.start()
-
 
     def startDither(self):
         if self.image_canvas.input_image is None:
