@@ -1,11 +1,20 @@
+import os
+import sys
 import time
-from rembg import new_session, remove
+
+sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src")
+
+from image_processing.stippling import Stippling
 
 from PIL import Image
+from rembg import new_session, remove
 
 class Test:
     def __init__(self):
-        self.pil_image = Image.open(r"C:\Users\tvten\Desktop\F16.jpg")
+        self.pil_image = Image.open(r"C:\Users\tvten\Desktop\TS_NO_BG.png")
+
+    def scale(self) -> None:
+        self.pil_image = self.pil_image.resize((int(self.pil_image.width/2), int(self.pil_image.height/2)))
 
     def test_rembg(self, image: Image) -> None:
         if image is None:
@@ -28,5 +37,14 @@ class Test:
         image = jpg_image
         image.show()
 
+    def test_stippling(self) -> None:
+        stippling = Stippling(self.pil_image)
+        assert stippling.eucDist(0,0,3,4) == 5.0
+
+        stippling.stipple()
+
+
 test = Test()
-test.test_rembg(test.pil_image)
+test.scale()
+test.test_stippling()
+#test.test_rembg(test.pil_image)
