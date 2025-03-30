@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QFileDialog, QGridLayout,
                              QTextEdit, QWidget, QCheckBox, QComboBox,
                              QFrame)
 
-from src.utils import constants, svg_parser, FunctionTypeEnum, WorkerThread
+from src.utils import constants, svg_parser, WorkerThread
 from .process_canvas import ProcessCanvas
 
 # Image processing windows
@@ -227,15 +227,6 @@ class ProcessImage(QWidget):
         )
 
         if ".svg" in self.input_image:
-            # Program cannot work with normal SVG files,
-            # but if it's the path of the image
-            # (such as output of the "DrawingBot" program)
-            # then it can be turned into GCODE,
-            # and then turned into normal coordinate image
-
-            # self.SVGToGCODE(self.input_image)
-
-            """ New custom svg parser """
             self.parseSvg(self.input_image)
             return
 
@@ -253,21 +244,6 @@ class ProcessImage(QWidget):
             data, image.size[0], image.size[1], QImage.Format_RGBA8888
         )
         self.image_canvas.update()
-
-    def SVGToGCODE(self, path) -> None:
-        """
-        # Turns SVG path to GCODE
-        if gcode_convertor.SVGToGCODE(path, constants.OUTPUT_COODINATES_PATH) == 1:
-            # Turnes the GCODE into normal image
-            image = self.gcodePlotter()
-            image = image.convert("RGBA")
-            data = image.tobytes("raw", "RGBA")
-
-            self.image_canvas.input_image = QImage(
-                data, image.size[0], image.size[1], QImage.Format_RGBA8888
-            )
-            self.image_canvas.update()
-            """
 
     def gcodePlotter(self) -> Image:
         f = open(constants.OUTPUT_COODINATES_PATH, "r")

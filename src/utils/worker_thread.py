@@ -2,7 +2,6 @@ import time
 import subprocess
 
 from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtGui import QImage
 from PIL import Image
 
 from src.image_processing import dithering

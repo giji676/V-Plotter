@@ -1,6 +1,4 @@
 import os
-import time
-import subprocess
 import numpy as np
 from rembg import remove, new_session
 
@@ -9,7 +7,7 @@ from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QColor, QImage, QPainter, QPixmap, QTransform
 from PyQt5.QtWidgets import QWidget
 
-from src.utils import constants, path_maker, to_steps
+from src.utils import constants, to_steps
 
 
 # Canvas that displays the image being processed
@@ -70,34 +68,19 @@ class ProcessCanvas(QWidget):
         self.input_image = QImage(path)
         self.update()
 
-    def makePath(self, linker_result: subprocess.CompletedProcess) -> None:
-        # Converts the output of linkern program to usable files for this program
-        # linker_result = self.linkern()
-
-        if linker_result.returncode == 0:
-
-            image = path_maker.pathMaker(
-                constants.TSP_PATH, constants.CYC_PATH, constants.OUTPUT_COODINATES_PATH)
-
-            image = image.convert("RGBA")
-            data = image.tobytes("raw", "RGBA")
-
-            self.input_image = QImage(
-                data, image.size[0], image.size[1], QImage.Format_RGBA8888
-            )
-            self.update()
-
     def convertToSteps(self) -> None:
         # Converts the coordinates of the points to steps of the stepper motor based on the <settings>
         if not os.path.exists(constants.OUTPUT_COODINATES_PATH):
             return
         steps_output = to_steps.convertToSteps(
-            self.settings, constants.OUTPUT_COODINATES_PATH, constants.OUTPUT_STEPS_PATH, fit=True, min_pen_pickup=self.process_image_window.cbx_min_pen_pickup.isChecked()
-        )
+            self.settings,
+            constants.OUTPUT_COODINATES_PATH,
+            constants.OUTPUT_STEPS_PATH,
+            fit=True,
+            min_pen_pickup=self.process_image_window.cbx_min_pen_pickup.isChecked())
         if steps_output:
             self.process_image_window.updateOutput(steps_output)
 
-    # TODO: fix the qimageToPil so it works properly, get rid of qpixmapToImage2 after
     def qimageToPil(self, qimage):
         # Get image dimensions
         width = qimage.width()
