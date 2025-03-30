@@ -166,12 +166,17 @@ class ProcessImage(QWidget):
         if self.image_canvas.input_image is None:
             return
         image = self.image_canvas.qpixmapToImage2(self.image_canvas.input_image).convert("L")
-        #image = Image.fromqpixmap(self.image_canvas.input_image).convert("L")
+        # image = Image.fromqpixmap(self.image_canvas.input_image).convert("L")
         image = ImageOps.invert(image)
 
-        self.worker_thread.function_type = FunctionTypeEnum.WAVE
-        self.worker_thread.wave_smooth = self.cbx_wave_smooth.isChecked()
-        self.worker_thread.image = image
+        self.worker_thread.set_task(self.worker_thread.wave,
+                                    image,
+                                    self.worker_thread.update_signal,
+                                    int(self.txt_frequency.text()),
+                                    int(self.txt_lines.text()),
+                                    int(self.txt_color_range.text()),
+                                    int(self.txt_size_x.text()))
+        # image.show()
         self.worker_thread.start()
 
     def startDither(self):
@@ -190,15 +195,18 @@ class ProcessImage(QWidget):
         self.output_text_edit.append(output)
 
     def finishOutput(self):
-        if self.worker_thread.function_type == FunctionTypeEnum.LINKERN:
-            result = self.worker_thread.getResult()
-            self.image_canvas.makePath(result)
-            return
-        result = self.worker_thread.getResult()
-        self.output_text_edit.append(result)
+        # if self.worker_thread.function_type == FunctionTypeEnum.LINKERN:
+        #     result = self.worker_thread.getResult()
+        #     self.image_canvas.makePath(result)
+        #     return
+        # result = self.worker_thread.getResult()
+        # self.output_text_edit.append(result)
+        pass
 
     def imageOutput(self):
         image = self.worker_thread.image
+        if image == None:
+            return
         image = image.convert("RGBA")
         data = image.tobytes("raw", "RGBA")
 

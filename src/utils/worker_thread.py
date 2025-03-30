@@ -1,6 +1,7 @@
 import time
 import subprocess
 import numpy as np
+from functools import partial
 
 from PyQt5.QtCore import QThread, pyqtSignal
 from PIL import Image
@@ -19,23 +20,34 @@ class WorkerThread(QThread):
 
     def __init__(self):
         super().__init__()
+        self.func = None
+        self.args = ()
+        self.kwargs = {}
         self.result = None
         self.image = None
-        self.function_type = None
-        self.wave_smooth = None
+
+    # def run(self):
+    #     # Called by QThread automatically when WorkerThread.start() is called
+    #     if self.function_type == FunctionTypeEnum.WAVE:
+    #         self.image = self.wave(self.image)
+    #         self.image_signal.emit()
+    #     elif self.function_type == FunctionTypeEnum.LINKERN:
+    #         self.linkern()
+    #     elif self.function_type == FunctionTypeEnum.DITHER:
+    #         self.image = self.dither(self.image)
+    #         self.image_signal.emit()
 
     def run(self):
-        # Called by QThread automatically when WorkerThread.start() is called
-        if self.function_type == FunctionTypeEnum.WAVE:
-            self.image = self.wave(self.image)
-            self.image_signal.emit()
-        elif self.function_type == FunctionTypeEnum.LINKERN:
-            self.linkern()
-        elif self.function_type == FunctionTypeEnum.DITHER:
-            self.image = self.dither(self.image)
-            self.image_signal.emit()
+        if self.func:
+            self.result = self.func(*self.args, **self.kwargs)
+            self.finish_signal.emit()  # Emit signal when task is done
 
-    def wave(self, image: Image) -> Image:
+    def set_task(self, func, *args, **kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+
+    def wave(self, image: Image, update_signal: pyqtSignal, line_frequency, lines, color_range, size_x):
         # Converts the image to waves
         f = open(constants.OUTPUT_COODINATES_PATH, "w")
         benchmark = False
@@ -46,16 +58,16 @@ class WorkerThread(QThread):
                 start_time = time.time()
                 self.update_signal.emit("Starting conversion to wave")
                 img = wave(image,
-                         self.update_signal,
-                         line_frequency=int(image.width/2),
-                         lines=100,
-                         color_range=20,
-                         size_x=20)
+                         update_signal,
+                         line_frequency=line_frequency,
+                         lines=lines,
+                         color_range=color_range,
+                         size_x=size_x)
                 time_took = time.time() - start_time
                 times.append(time_took)
                 self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
             self.update_signal.emit(f"Average time: {round(sum(times)/len(times), 3)} seconds")
-            img.show()
+            image = img
             # Average:20: 7.347
             # Average:5: 7.233
 
@@ -63,18 +75,18 @@ class WorkerThread(QThread):
         else:
             start_time = time.time()
             self.update_signal.emit("Starting conversion to wave")
-            img = wave(image,
-                     self.update_signal,
-                     line_frequency=int(image.width/2),
-                     lines=100,
-                     color_range=20,
-                     size_x=20)
+            image = wave(image,
+                     update_signal,
+                     line_frequency=line_frequency,
+                     lines=lines,
+                     color_range=color_range,
+                     size_x=size_x)
             time_took = time.time() - start_time
             self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
             self.finish_signal.emit()
-            img.show()
 
-        return image
+        self.image = image
+        self.image_signal.emit()
 
     def linkern(self) -> None:
         # Runs the linkern.exe program
@@ -106,6 +118,6 @@ class WorkerThread(QThread):
         self.finish_signal.emit()
         return image
 
-    def getResult(self) -> subprocess.CompletedProcess:
+    def getResult(self):
         return self.result
 
