@@ -118,7 +118,6 @@ class ProcessImage(QWidget):
 
         self.worker_thread = WorkerThread()
         self.worker_thread.update_signal.connect(self.updateOutput)
-        self.worker_thread.finish_signal.connect(self.finishOutput)
         self.worker_thread.image_signal.connect(self.imageOutput)
 
         self.setLayout(self.lyt_process_image_tab)
@@ -159,7 +158,7 @@ class ProcessImage(QWidget):
 
     def startLinkern(self):
         if os.path.exists(constants.TSP_PATH):
-            self.worker_thread.function_type = FunctionTypeEnum.LINKERN
+            self.worker_thread.set_task(self.worker_thread.linkern)
             self.worker_thread.start()
 
     def startWave(self):
@@ -192,15 +191,6 @@ class ProcessImage(QWidget):
 
     def updateOutput(self, output):
         self.output_text_edit.append(output)
-
-    def finishOutput(self):
-        # if self.worker_thread.function_type == FunctionTypeEnum.LINKERN:
-        #     result = self.worker_thread.getResult()
-        #     self.image_canvas.makePath(result)
-        #     return
-        # result = self.worker_thread.getResult()
-        # self.output_text_edit.append(result)
-        pass
 
     def imageOutput(self):
         image = self.worker_thread.image

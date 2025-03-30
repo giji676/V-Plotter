@@ -1,21 +1,19 @@
 import time
 import subprocess
-import numpy as np
-from functools import partial
 
 from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtGui import QImage
 from PIL import Image
 
 from src.image_processing import dithering
 from src.image_processing.wave import wave
-from . import FunctionTypeEnum, constants
+from . import path_maker, constants
 
 
 class WorkerThread(QThread):
     # Runs lengthy functions on a separate "worker thread" so the gui doesn't freeze
     # function_signal is "emited" to set the right function to run (eg. linkern, wave, dithering)
     update_signal = pyqtSignal(str)
-    finish_signal = pyqtSignal()
     image_signal = pyqtSignal()
 
     def __init__(self):
@@ -26,21 +24,9 @@ class WorkerThread(QThread):
         self.result = None
         self.image = None
 
-    # def run(self):
-    #     # Called by QThread automatically when WorkerThread.start() is called
-    #     if self.function_type == FunctionTypeEnum.WAVE:
-    #         self.image = self.wave(self.image)
-    #         self.image_signal.emit()
-    #     elif self.function_type == FunctionTypeEnum.LINKERN:
-    #         self.linkern()
-    #     elif self.function_type == FunctionTypeEnum.DITHER:
-    #         self.image = self.dither(self.image)
-    #         self.image_signal.emit()
-
     def run(self):
         if self.func:
-            self.result = self.func(*self.args, **self.kwargs)
-            self.finish_signal.emit()  # Emit signal when task is done
+            self.func(*self.args, **self.kwargs)
 
     def set_task(self, func, *args, **kwargs):
         self.func = func
@@ -83,7 +69,6 @@ class WorkerThread(QThread):
                      size_x=size_x)
             time_took = time.time() - start_time
             self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
-            self.finish_signal.emit()
 
         self.image = image
         self.image_signal.emit()
@@ -91,7 +76,7 @@ class WorkerThread(QThread):
     def linkern(self) -> None:
         # Runs the linkern.exe program
         linker_command = f"{constants.PATH_MAKER} -o {constants.CYC_PATH} {constants.TSP_PATH}"
-        linker_result = subprocess.Popen(
+        linkern_result = subprocess.Popen(
             linker_command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -100,24 +85,24 @@ class WorkerThread(QThread):
         )
 
         # Continuous updates are emited through update_signal
-        while linker_result.poll() is None:
-            line = linker_result.stdout.readline()
+        while linkern_result.poll() is None:
+            line = linkern_result.stdout.readline()
             self.update_signal.emit(line)
+        self.makePath(linkern_result)
 
-        # Finished result/output emited through finish_signal
-        self.result = linker_result
-        self.finish_signal.emit()
+    def makePath(self, linker_result: subprocess.CompletedProcess) -> None:
+        # Converts the output of linkern program to usable files for this program
+        if linker_result.returncode == 0:
 
-    def dither(self, image: Image) -> Image:
+            image = path_maker.pathMaker(
+                constants.TSP_PATH, constants.CYC_PATH, constants.OUTPUT_COODINATES_PATH)
+            self.image = image
+            self.image_signal.emit()
+
+    def dither(self, image: Image):
         start_time = time.time()
         self.update_signal.emit("Starting dithering")
-        image = dithering.applyDithering(image, constants.TSP_PATH)
-        self.image = image
+        self.image = dithering.applyDithering(image, constants.TSP_PATH)
         self.update_signal.emit("Finished dithering")
         self.update_signal.emit(f"\nTotal run time: {time.time() - start_time} seconds\n")
-        self.finish_signal.emit()
         self.image_signal.emit()
-
-    def getResult(self):
-        return self.result
-
