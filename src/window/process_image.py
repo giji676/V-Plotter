@@ -187,8 +187,7 @@ class ProcessImage(QWidget):
         #image = Image.fromqpixmap(self.image_canvas.input_image).convert("L")
         image = ImageOps.invert(image)
 
-        self.worker_thread.function_type = FunctionTypeEnum.DITHER
-        self.worker_thread.image = image
+        self.worker_thread.set_task(self.worker_thread.dither, image)
         self.worker_thread.start()
 
     def updateOutput(self, output):

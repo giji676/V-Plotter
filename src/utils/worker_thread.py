@@ -106,17 +106,17 @@ class WorkerThread(QThread):
 
         # Finished result/output emited through finish_signal
         self.result = linker_result
-
-        # Emit a signal with the output
         self.finish_signal.emit()
 
-    def dither(self, image) -> Image:
+    def dither(self, image: Image) -> Image:
         start_time = time.time()
         self.update_signal.emit("Starting dithering")
         image = dithering.applyDithering(image, constants.TSP_PATH)
-        self.result = f"\nTotal run time: {time.time() - start_time} seconds\n"
+        self.image = image
+        self.update_signal.emit("Finished dithering")
+        self.update_signal.emit(f"\nTotal run time: {time.time() - start_time} seconds\n")
         self.finish_signal.emit()
-        return image
+        self.image_signal.emit()
 
     def getResult(self):
         return self.result
