@@ -26,7 +26,17 @@ def process_row(y, pixels_row, pre_computed, size_x, size_y, line_frequency):
     img_row = Image.new("RGB", (size_x * line_frequency, size_y), color="white")
     draw = ImageDraw.Draw(img_row)
 
-    for x in range(line_frequency):
+    start = 0
+    end = line_frequency
+
+    # Flips 0 : line_frequency to line_frequency : 0 in case o for-loop
+    # to invert the start and finish of the row being processed
+    increment = 1
+    if y % 2 == 0:
+        start, end = end-1, start-1
+        increment = -1
+
+    for x in range(start, end, increment):
         fill = fills[x % 2]
 
         # Ensure pixel is within 0-255 range
@@ -34,17 +44,25 @@ def process_row(y, pixels_row, pre_computed, size_x, size_y, line_frequency):
 
         # Safely map pixel intensity to pre_computed index
         pixel = min(max(round(pixels_row[x] / (256 / len(pre_computed))), 0), len(pre_computed) - 1)
-        
+
         pre_computed_wave = pre_computed[pixel]
 
-        for i_ in range(len(pre_computed_wave) - 1):
-            i = i_ / (len(pre_computed_wave) / size_x)
-            x_pos = x * size_x + i
-            y_pos_local = pre_computed_wave[i_]
+        for i_abs in range(len(pre_computed_wave) - 1):
+            # Adjusts the wave for the extra sampling rate
+            # e.g if a wave of size_x=20 has sampling rate of 3,
+            # we have 20*3=60 values, which needs to be mapped back to size_x number of x positions
+            i = i_abs / (len(pre_computed_wave) / size_x)
+
+            offset = 0
+            if y % 2 == 0:
+                offset = 1
+
+            x_pos = (x+offset) * size_x + i*increment
+            y_pos_local = pre_computed_wave[i_abs]
             y_pos = (size_y / 2) + y_pos_local
 
-            x_pos_n = x * size_x + i + 1
-            y_pos_local_n = pre_computed_wave[i_ + 1]
+            x_pos_n = (x+offset) * size_x + (i*increment) + increment
+            y_pos_local_n = pre_computed_wave[i_abs + 1]
             y_pos_n = (size_y / 2) + y_pos_local_n
 
             draw.line(((x_pos, y_pos), (x_pos_n, y_pos_n)), fill=fill, width=2)
