@@ -32,7 +32,7 @@ class WorkerThread(QThread):
         self.args = args
         self.kwargs = kwargs
 
-    def wave(self, image: Image, update_signal: pyqtSignal, line_frequency, lines, color_range, size_x):
+    def wave(self, image: Image, update_signal: pyqtSignal, line_frequency, lines, color_range, size_x, true_size):
         # Converts the image to waves
         f = open(constants.OUTPUT_COODINATES_PATH, "w")
         benchmark = False
@@ -47,7 +47,8 @@ class WorkerThread(QThread):
                          line_frequency=line_frequency,
                          lines=lines,
                          color_range=color_range,
-                         size_x=size_x)
+                         size_x=size_x,
+                         true_size=true_size)
                 time_took = time.time() - start_time
                 times.append(time_took)
                 self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
@@ -65,7 +66,8 @@ class WorkerThread(QThread):
                      line_frequency=line_frequency,
                      lines=lines,
                      color_range=color_range,
-                     size_x=size_x)
+                     size_x=size_x,
+                     true_size=true_size)
             time_took = time.time() - start_time
             self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
 

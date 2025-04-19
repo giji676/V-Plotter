@@ -35,6 +35,7 @@ class ProcessImage(QWidget):
         self.btn_save_image = QPushButton("Save Image")
         self.btn_crop = QPushButton("Crop")
         self.cbx_wave_smooth = QCheckBox("Use Wave Smoother")
+        self.cbx_wave_true_size = QCheckBox("Display true size waves")
         self.cbx_min_pen_pickup = QCheckBox("Use Minimum Pen Pickup Distance")
         self.cmb_processing_selector = QComboBox()
 
@@ -143,7 +144,8 @@ class ProcessImage(QWidget):
         lyt_frame.addWidget(self.lbl_size_x, 3, 0)
         lyt_frame.addWidget(self.txt_size_x, 3, 1)
         lyt_frame.addWidget(self.cbx_wave_smooth, 4, 0)
-        lyt_frame.addWidget(self.btn_wave, 4, 1)
+        lyt_frame.addWidget(self.cbx_wave_true_size, 4, 1)
+        lyt_frame.addWidget(self.btn_wave, 5, 0, 2, 2)
 
         return frame
 
@@ -174,7 +176,8 @@ class ProcessImage(QWidget):
                                     int(self.txt_frequency.text()),
                                     int(self.txt_lines.text()),
                                     int(self.txt_color_range.text()),
-                                    int(self.txt_size_x.text()))
+                                    int(self.txt_size_x.text()),
+                                    self.cbx_wave_true_size.isChecked())
         # image.show()
         self.worker_thread.start()
 

@@ -69,7 +69,7 @@ def process_row(y, pixels_row, pre_computed, size_x, size_y, line_frequency):
 
     return y, img_row
 
-def wave(image: Image, update_signal: pyqtSignal, line_frequency=400, lines=100, color_range=10, size_x=20) -> Image:
+def wave(image: Image, update_signal: pyqtSignal, line_frequency=400, lines=100, color_range=10, size_x=20, true_size=False) -> Image:
     """
     Applies wave transformation to an image using multiprocessing for speed.
     """
@@ -98,5 +98,8 @@ def wave(image: Image, update_signal: pyqtSignal, line_frequency=400, lines=100,
         final_image.paste(img_row, (0, y * size_y))
 
         update_signal.emit(f"{int(y / (lines - 1) * 100)}%")
+
+    if not true_size:
+        final_image = final_image.resize((og_width, og_height))
 
     return final_image
