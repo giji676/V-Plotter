@@ -48,43 +48,6 @@ def convertToSteps(settings, input_file, output_file, fit=False, min_pen_pickup=
 
     s_current_distance = s_start_distance
 
-    """
-    M1 -------------------------------------------------------------- M2
-     \                                                                /
-      \                                                              /
-       \                                                            /
-        \                                                          /
-         \                                                        /
-          \                                                      /
-           \                                                    /
-            \     ----------------------------------------     /
-             \    |                                      |    /
-              \   |                                      |   /
-               \  |                                      |  /
-                \ |                                      | /
-                 \|                                      |/
-                  \                                      /
-                  |\                                    /|
-                  | \                                  / |
-                  |  \                                /  |
-                  |   \                              /   |
-                  |    \                            /    |
-                  |     \                          /     |
-                  |      \                        /      |
-                  |       \                      /       |
-                  |        \                    /        |
-                  |         \                  /         |
-                  -----------\----------------/-----------
-                              \              /
-                               \            /
-                                \          /
-                                 \        /
-                                  \      /
-                                   \    /
-                                    \  /
-                                     \/
-    """
-
     imgs = []
     f = open(input_file, "r")
     max_x = 0
@@ -100,7 +63,7 @@ def convertToSteps(settings, input_file, output_file, fit=False, min_pen_pickup=
             imgs.append("PENDOWN")
         else:
             line = line.split()
-            x, y = int(float(line[0])), int(float(line[1]))
+            x, y = (float(line[0])), (float(line[1]))
             imgs.append([x, y])
             if x > max_x:
                 max_x = x
