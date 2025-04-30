@@ -16,13 +16,13 @@ def wave(image: Image, update_signal: pyqtSignal, output_file: str, ystep=100, x
     output_image = Image.new("RGB", (image.width, image.height), color="white")
     draw = ImageDraw.Draw(output_image)
 
-    ymult = 6
     scale_factor = 1.0 / IMAGE_SCALE_UP
 
     min_phase_incr = 10 * TWO_PI / (image.width / xstep)
     max_phase_incr =  TWO_PI * xstep / stroke_width
 
     scaled_y_step = image.height / ystep
+    ymult = scaled_y_step/IMAGE_SCALE_UP/2
     odd_row = False
     final_row = False
     reverse_row = False
@@ -30,7 +30,6 @@ def wave(image: Image, update_signal: pyqtSignal, output_file: str, ystep=100, x
     f = open(output_file, "w")
     l_x, l_y = None, None
     for y_ in np.arange(0, image.height, scaled_y_step):
-
         x_start_points = []
         y_start_points = []
         x_points = []
