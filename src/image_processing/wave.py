@@ -1,6 +1,5 @@
 import math
 import numpy as np
-# import matplotlib.pyplot as plt
 
 from PyQt5.QtCore import pyqtSignal
 from PIL import Image, ImageOps, ImageDraw
@@ -31,17 +30,34 @@ def wave(image: Image, update_signal: pyqtSignal, output_file: str, ystep=100, x
     f = open(output_file, "w")
     l_x, l_y = None, None
     for y_ in np.arange(0, image.height, scaled_y_step):
+
+        x_start_points = []
+        y_start_points = []
         x_points = []
         y_points = []
+        x_end_points = []
+        y_end_points = []
+
         y = y_.item()
         odd_row = not odd_row
 
         if (y + scaled_y_step) >= image.height:
             final_row = True
-        if not odd_row:
-            reverse_row = True
+        reverse_row = not odd_row
+
+        if reverse_row:
+            if y == 0:
+                x_start_points.append((image.width + 0.1 * xstep))
+                y_start_points.append(y + scaled_y_step/2)
+            x_start_points.append(image.width)
+            y_start_points.append(y + scaled_y_step/2)
         else:
-            reverse_row = False
+            if y == 0:
+                x_start_points.append(-(0.1 * xstep))
+                y_start_points.append(y + scaled_y_step/2)
+            x_start_points.append(0)
+            y_start_points.append(y + scaled_y_step/2)
+
 
         phase = 0.0
         last_phase = 0
@@ -94,15 +110,45 @@ def wave(image: Image, update_signal: pyqtSignal, output_file: str, ystep=100, x
         if reverse_row:
             x_points.reverse()
             y_points.reverse()
+        if reverse_row:
+            x_end_points.append(0)
+            y_end_points.append(y + scaled_y_step/2)
+            if final_row:
+                x_end_points.append(-(0.1 * xstep))
+                y_end_points.append(y + scaled_y_step/2)
+        else:
+            x_end_points.append(image.width)
+            y_end_points.append(y  + scaled_y_step/2)
+            if final_row:
+                x_end_points.append((image.width + 0.1 * xstep))
+                y_end_points.append(y + scaled_y_step/2)
+        if not final_row:
+            if reverse_row:
+                x_end_points.append(-(0.1 * xstep))
+                y_end_points.append((y + scaled_y_step/2))
+            else:
+                x_end_points.append((image.width + 0.1 * xstep))
+                y_end_points.append((y + scaled_y_step/2))
 
-        # plt.plot(x_points, y_points, color="black", alpha=1, linewidth=stroke_width)
+        for i, (x, y) in enumerate(zip(x_start_points, y_start_points)):
+            f.write(f"{x} {y}\n")
+            x, y = round(x), round(y)
+            draw.line(((l_x, l_y),(x, y)), (0,0,0), width=stroke_width*IMAGE_SCALE_UP)
+            l_x, l_y = x, y
+
         for i, (x, y) in enumerate(zip(x_points, y_points)):
             f.write(f"{x} {y}\n")
             x, y = round(x), round(y)
             draw.line(((l_x, l_y),(x, y)), (0,0,0), width=stroke_width*IMAGE_SCALE_UP)
             l_x, l_y = x, y
+
+        for i, (x, y) in enumerate(zip(x_end_points, y_end_points)):
+            f.write(f"{x} {y}\n")
+            x, y = round(x), round(y)
+            draw.line(((l_x, l_y),(x, y)), (0,0,0), width=stroke_width*IMAGE_SCALE_UP)
+            l_x, l_y = x, y
+
+
     f.close()
     # output_image.show()
-    # plt.gca().invert_yaxis()
-    # plt.show()
     return output_image
