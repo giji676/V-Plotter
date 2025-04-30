@@ -132,19 +132,19 @@ def wave(image: Image, update_signal: pyqtSignal, output_file: str, ystep=100, x
         for i, (x, y) in enumerate(zip(x_start_points, y_start_points)):
             f.write(f"{x} {y}\n")
             x, y = round(x), round(y)
-            draw.line(((l_x, l_y),(x, y)), (0,0,0), width=stroke_width*IMAGE_SCALE_UP)
+            draw.line(((l_x, l_y),(x, y)), (0,0,0), width=int(stroke_width*IMAGE_SCALE_UP))
             l_x, l_y = x, y
 
         for i, (x, y) in enumerate(zip(x_points, y_points)):
             f.write(f"{x} {y}\n")
             x, y = round(x), round(y)
-            draw.line(((l_x, l_y),(x, y)), (0,0,0), width=stroke_width*IMAGE_SCALE_UP)
+            draw.line(((l_x, l_y),(x, y)), (0,0,0), width=int(stroke_width*IMAGE_SCALE_UP))
             l_x, l_y = x, y
 
         for i, (x, y) in enumerate(zip(x_end_points, y_end_points)):
             f.write(f"{x} {y}\n")
             x, y = round(x), round(y)
-            draw.line(((l_x, l_y),(x, y)), (0,0,0), width=stroke_width*IMAGE_SCALE_UP)
+            draw.line(((l_x, l_y),(x, y)), (0,0,0), width=int(stroke_width*IMAGE_SCALE_UP))
             l_x, l_y = x, y
 
 

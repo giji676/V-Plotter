@@ -172,7 +172,7 @@ class ProcessImage(QWidget):
                                     int(self.txt_ystep.text()),
                                     float(self.txt_xstep.text()),
                                     float(self.txt_xsmooth.text()),
-                                    int(self.txt_stroke_width.text()))
+                                    float(self.txt_stroke_width.text()))
 
         self.worker_thread.start()
 
