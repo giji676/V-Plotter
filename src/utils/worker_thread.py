@@ -32,9 +32,8 @@ class WorkerThread(QThread):
         self.args = args
         self.kwargs = kwargs
 
-    def wave(self, image: Image, update_signal: pyqtSignal, line_frequency, lines, color_range, size_x, true_size):
+    def wave(self, image: Image, update_signal: pyqtSignal, ystep, xstep, xsmooth, stroke_width):
         # Converts the image to waves
-        f = open(constants.OUTPUT_COODINATES_PATH, "w")
         benchmark = False
         if benchmark:
             times = []
@@ -43,33 +42,32 @@ class WorkerThread(QThread):
                 start_time = time.time()
                 self.update_signal.emit("Starting conversion to wave")
                 img = wave(image,
-                         update_signal,
-                         line_frequency=line_frequency,
-                         lines=lines,
-                         color_range=color_range,
-                         size_x=size_x,
-                         true_size=true_size)
+                           update_signal,
+                           constants.OUTPUT_COODINATES_PATH,
+                           ystep=ystep,
+                           xstep=xstep,
+                           xsmooth=xsmooth,
+                           stroke_width=stroke_width)
                 time_took = time.time() - start_time
                 times.append(time_took)
                 self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
             self.update_signal.emit(f"Average time: {round(sum(times)/len(times), 3)} seconds")
             image = img
-            # Average:20: 7.347
-            # Average:5: 7.233
 
             self.finish_signal.emit()
         else:
             start_time = time.time()
             self.update_signal.emit("Starting conversion to wave")
-            image = wave(image,
-                     update_signal,
-                     line_frequency=line_frequency,
-                     lines=lines,
-                     color_range=color_range,
-                     size_x=size_x,
-                     true_size=true_size)
+            img = wave(image,
+                       update_signal,
+                       constants.OUTPUT_COODINATES_PATH,
+                       ystep=ystep,
+                       xstep=xstep,
+                       xsmooth=xsmooth,
+                       stroke_width=stroke_width)
             time_took = time.time() - start_time
             self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
+            image = img
 
         self.image = image
         self.image_signal.emit()

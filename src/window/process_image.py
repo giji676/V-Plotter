@@ -34,19 +34,17 @@ class ProcessImage(QWidget):
         self.btn_convert_to_steps = QPushButton("Convert to steps")
         self.btn_save_image = QPushButton("Save Image")
         self.btn_crop = QPushButton("Crop")
-        self.cbx_wave_smooth = QCheckBox("Use Wave Smoother")
-        self.cbx_wave_true_size = QCheckBox("Display true size waves")
         self.cbx_min_pen_pickup = QCheckBox("Use Minimum Pen Pickup Distance")
         self.cmb_processing_selector = QComboBox()
 
-        self.lbl_lines = QLabel("Lines")
-        self.txt_lines = QLineEdit("100")
-        self.lbl_frequency = QLabel("Frequency")
-        self.txt_frequency = QLineEdit("400")
-        self.lbl_color_range = QLabel("Color range")
-        self.txt_color_range = QLineEdit("10")
-        self.lbl_size_x = QLabel("Single wave width")
-        self.txt_size_x = QLineEdit("20")
+        self.lbl_ystep = QLabel("Lines")
+        self.txt_ystep = QLineEdit("100")
+        self.lbl_xstep = QLabel("X Step")
+        self.txt_xstep = QLineEdit("3")
+        self.lbl_xsmooth = QLabel("X Smooth")
+        self.txt_xsmooth = QLineEdit("128")
+        self.lbl_stroke_width = QLabel("Stroke Width")
+        self.txt_stroke_width = QLineEdit("1")
 
     def setupUI(self) -> None:
         self.left_input_panel = QWidget()
@@ -135,16 +133,14 @@ class ProcessImage(QWidget):
 
         lyt_frame = QGridLayout(frame)
 
-        lyt_frame.addWidget(self.lbl_lines, 0, 0)
-        lyt_frame.addWidget(self.txt_lines, 0, 1)
-        lyt_frame.addWidget(self.lbl_frequency, 1, 0)
-        lyt_frame.addWidget(self.txt_frequency, 1, 1)
-        lyt_frame.addWidget(self.lbl_color_range, 2, 0)
-        lyt_frame.addWidget(self.txt_color_range, 2, 1)
-        lyt_frame.addWidget(self.lbl_size_x, 3, 0)
-        lyt_frame.addWidget(self.txt_size_x, 3, 1)
-        lyt_frame.addWidget(self.cbx_wave_smooth, 4, 0)
-        lyt_frame.addWidget(self.cbx_wave_true_size, 4, 1)
+        lyt_frame.addWidget(self.lbl_ystep, 0, 0)
+        lyt_frame.addWidget(self.txt_ystep, 0, 1)
+        lyt_frame.addWidget(self.lbl_xstep, 1, 0)
+        lyt_frame.addWidget(self.txt_xstep, 1, 1)
+        lyt_frame.addWidget(self.lbl_xsmooth, 2, 0)
+        lyt_frame.addWidget(self.txt_xsmooth, 2, 1)
+        lyt_frame.addWidget(self.lbl_stroke_width, 3, 0)
+        lyt_frame.addWidget(self.txt_stroke_width, 3, 1)
         lyt_frame.addWidget(self.btn_wave, 5, 0, 2, 2)
 
         return frame
@@ -168,17 +164,16 @@ class ProcessImage(QWidget):
             return
         image = self.image_canvas.qpixmapToImage2(self.image_canvas.input_image).convert("L")
         # image = Image.fromqpixmap(self.image_canvas.input_image).convert("L")
-        image = ImageOps.invert(image)
+        # image = ImageOps.invert(image)
 
         self.worker_thread.set_task(self.worker_thread.wave,
                                     image,
                                     self.worker_thread.update_signal,
-                                    int(self.txt_frequency.text()),
-                                    int(self.txt_lines.text()),
-                                    int(self.txt_color_range.text()),
-                                    int(self.txt_size_x.text()),
-                                    self.cbx_wave_true_size.isChecked())
-        # image.show()
+                                    int(self.txt_ystep.text()),
+                                    float(self.txt_xstep.text()),
+                                    float(self.txt_xsmooth.text()),
+                                    int(self.txt_stroke_width.text()))
+
         self.worker_thread.start()
 
     def startDither(self):

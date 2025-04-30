@@ -1,105 +1,108 @@
+import math
 import numpy as np
-from PIL import Image, ImageDraw
+# import matplotlib.pyplot as plt
+
 from PyQt5.QtCore import pyqtSignal
-import multiprocessing as mp
+from PIL import Image, ImageOps, ImageDraw
 
-# Alternate between red and black fill for every pixel for debug clarity
-fills = ((0, 0, 0))
+TWO_PI = 2 * np.pi
+HALF_PI = 0.5 * np.pi
+IMAGE_SCALE_UP = 3
 
-def waveAt(x, freq):
-    return np.sin(x * np.pi * 2 * freq)
+def wave(image: Image, update_signal: pyqtSignal, output_file: str, ystep=100, xstep=3, xsmooth=128, stroke_width=1):
+    # xsmooth = 150 # Bigger => less freq
+    image = ImageOps.invert(image.convert("L"))
+    image = image.resize((image.width*IMAGE_SCALE_UP, image.height*IMAGE_SCALE_UP))
 
-def preCompute(color_range, size, sampling_rate_, amp_mult):
-    pre_computed = []
-    for i in range(color_range+1):
-        temp = []
-        sampling_rate = sampling_rate_ if i > 3 else 1
-        for j in range(size * sampling_rate):
-            temp.append(waveAt(j/(size * sampling_rate - 1), int(i / 2)) * i * amp_mult)
-        pre_computed.append(temp)
-    return pre_computed
+    output_image = Image.new("RGB", (image.width, image.height), color="white")
+    draw = ImageDraw.Draw(output_image)
 
-def process_row(y, pixels_row, pre_computed, size_x, size_y, line_frequency):
-    """
-    Processes a single row of pixels, drawing waveforms for each column.
-    """
-    img_row = Image.new("RGB", (size_x * line_frequency, size_y), color="white")
-    draw = ImageDraw.Draw(img_row)
+    ymult = 6
+    scale_factor = 1.0 / IMAGE_SCALE_UP
 
-    start = 0
-    end = line_frequency
+    min_phase_incr = 10 * TWO_PI / (image.width / xstep)
+    max_phase_incr =  TWO_PI * xstep / stroke_width
 
-    # Flips 0 : line_frequency to line_frequency : 0 in case o for-loop
-    # to invert the start and finish of the row being processed
-    increment = 1
-    if y % 2 == 0:
-        start, end = end-1, start-1
-        increment = -1
+    scaled_y_step = image.height / ystep
+    odd_row = False
+    final_row = False
+    reverse_row = False
 
-    for x in range(start, end, increment):
-        fill = fills[x % 2]
+    f = open(output_file, "w")
+    l_x, l_y = None, None
+    for y_ in np.arange(0, image.height, scaled_y_step):
+        x_points = []
+        y_points = []
+        y = y_.item()
+        odd_row = not odd_row
 
-        # Ensure pixel is within 0-255 range
-        pixels_row[x] = min(max(pixels_row[x], 0), 255)
+        if (y + scaled_y_step) >= image.height:
+            final_row = True
+        if not odd_row:
+            reverse_row = True
+        else:
+            reverse_row = False
 
-        # Safely map pixel intensity to pre_computed index
-        pixel = min(max(round(pixels_row[x] / (256 / len(pre_computed))), 0), len(pre_computed) - 1)
+        phase = 0.0
+        last_phase = 0
+        last_ampl = 0
+        final_step = False
 
-        pre_computed_wave = pre_computed[pixel]
+        x = 1
+        last_x = 1
 
-        for i_abs in range(len(pre_computed_wave) - 1):
-            # Adjusts the wave for the extra sampling rate
-            # e.g if a wave of size_x=20 has sampling rate of 3,
-            # we have 20*3=60 values, which needs to be mapped back to size_x number of x positions
-            i = i_abs / (len(pre_computed_wave) / size_x)
+        while not final_step:
+            x += xstep
+            final_step = (x + xstep) >= image.width
 
-            offset = 0
-            if y % 2 == 0:
-                offset = 1
+            z = int(image.getpixel((x, y)))
 
-            x_pos = (x+offset) * size_x + i*increment
-            y_pos_local = pre_computed_wave[i_abs]
-            y_pos = (size_y / 2) + y_pos_local
+            r = z / ystep * ymult
 
-            x_pos_n = (x+offset) * size_x + (i*increment) + increment
-            y_pos_local_n = pre_computed_wave[i_abs + 1]
-            y_pos_n = (size_y / 2) + y_pos_local_n
+            df = z / xsmooth
+            df = max(df, min_phase_incr)
+            df = min(df, max_phase_incr)
 
-            draw.line(((x_pos, y_pos), (x_pos_n, y_pos_n)), fill=fill, width=2)
+            phase += df
 
-    return y, img_row
+            delta_x = x - last_x
+            delta_ampl = r - last_ampl
 
-def wave(image: Image, update_signal: pyqtSignal, line_frequency=400, lines=100, color_range=10, size_x=20, true_size=False) -> Image:
-    """
-    Applies wave transformation to an image using multiprocessing for speed.
-    """
-    og_width, og_height = image.width, image.height
-    wave_aspect_ratio = (line_frequency * size_x) / og_width
-    size_y = int(og_height * wave_aspect_ratio / lines)
-    amp_mult = size_y / 2 / color_range
-    img = image.resize((line_frequency, lines))
+            delta_phase = phase - last_phase
 
-    pixels = np.array(img)
-    new_height, new_width = lines * size_y, line_frequency * size_x
+            if not final_step:
+                if delta_phase > HALF_PI:
+                    vertex_count = math.floor(delta_phase / HALF_PI)
 
-    sample_per_wave = 10
-    pre_computed = preCompute(color_range, size_x, sample_per_wave, amp_mult)
+                    integer_part = (vertex_count * HALF_PI) / delta_phase
 
-    # Use multiprocessing pool to process each row in parallel
-    with mp.Pool(processes=mp.cpu_count()) as pool:
-        results = pool.starmap(process_row, [
-            (y, pixels[y], pre_computed, size_x, size_y, line_frequency)
-            for y in range(lines)
-        ])
+                    delta_x_truncate = delta_x * integer_part
 
-    # Merge processed rows into the final image
-    final_image = Image.new("RGB", (new_width, new_height), color="white")
-    for y, img_row in sorted(results):
-        final_image.paste(img_row, (0, y * size_y))
+                    x_per_vertex =  delta_x_truncate / vertex_count
+                    ampl_per_vertex = (integer_part * delta_ampl) / vertex_count
 
-        update_signal.emit(f"{int(y / (lines - 1) * 100)}%")
+                    for _ in range(int(vertex_count)):
+                        last_x = last_x + x_per_vertex
+                        last_phase = last_phase + HALF_PI
+                        last_ampl = last_ampl + ampl_per_vertex
+                        if l_x == None and l_y == None:
+                            l_x = last_x
+                            l_y = scaled_y_step/2 + (y + np.sin(last_phase) * last_ampl)
 
-    if not true_size:
-        final_image = final_image.resize((og_width, og_height))
+                        x_points.append(last_x)
+                        y_points.append(scaled_y_step/2 + (y + np.sin(last_phase) * last_ampl))
+        if reverse_row:
+            x_points.reverse()
+            y_points.reverse()
 
-    return final_image
+        # plt.plot(x_points, y_points, color="black", alpha=1, linewidth=stroke_width)
+        for i, (x, y) in enumerate(zip(x_points, y_points)):
+            f.write(f"{x} {y}\n")
+            x, y = round(x), round(y)
+            draw.line(((l_x, l_y),(x, y)), (0,0,0), width=stroke_width*IMAGE_SCALE_UP)
+            l_x, l_y = x, y
+    f.close()
+    # output_image.show()
+    # plt.gca().invert_yaxis()
+    # plt.show()
+    return output_image
