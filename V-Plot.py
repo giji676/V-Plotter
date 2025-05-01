@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QSplashScreen
 from src.utils import constants
 from src.window import ProcessImage, ConfigureMachine
 
+from src.image_processing import cross_hatching
+
 
 class MyWindow(QMainWindow):
     def __init__(self):
@@ -20,6 +22,11 @@ class MyWindow(QMainWindow):
         self.tab_process_image.image_canvas.settings = self.tab_configure_machine.settings
         # vvvv temp
         self.tab_process_image.image_canvas.loadImage(r"C:\Users\tvten\Desktop\V-Plot shit\JO__.png")
+
+        cross_hatching.CrossHatching(
+            self.tab_process_image.image_canvas.qpixmapToImage2(self.tab_process_image.image_canvas.input_image),
+            12, 5)
+        exit()
 
         tab_widget.addTab(self.tab_process_image, "Process Image")
         tab_widget.addTab(self.tab_configure_machine, "Configure Machine")
