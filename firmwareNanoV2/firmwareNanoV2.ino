@@ -3,8 +3,11 @@
 #include <Servo.h>
 #include <Wire.h>
 #include <SD.h>
+#include <TMCStepper.h>
 #include <AccelStepper.h>
 #include <MultiStepper.h>
+#include <Arduino.h>
+#include "wiring_private.h"
 
 #define i2c_Address 0x3c
 #define SCREEN_WIDTH 128
@@ -12,9 +15,22 @@
 #define OLED_RESET -1
 Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
+#define STEP_PIN_1 7
+#define DIR_PIN_1 6
+#define STEP_PIN_2 4
+#define DIR_PIN_2 3
 
-AccelStepper stepper1(AccelStepper::DRIVER, 7, 6);
-AccelStepper stepper2(AccelStepper::DRIVER, 4, 3);
+#define R_SENSE 0.11f
+Uart mySerial (&sercom3, 20, 21, SERCOM_RX_PAD_1, UART_TX_PAD_2);
+
+TMC2209Stepper driver1(&Serial1, R_SENSE, 0);  // Hardware serial, address 0
+TMC2209Stepper driver2(&mySerial, R_SENSE, 1); // Software serial, address 1
+
+AccelStepper stepper1(AccelStepper::DRIVER, STEP_PIN_1, DIR_PIN_1);
+AccelStepper stepper2(AccelStepper::DRIVER, STEP_PIN_2, DIR_PIN_2);
+
+MultiStepper steppers;
+int maxSpeed = 3000;  // Default maxSpeed
 
 // Rotatory encoder
 const int inputCLK = 2;
@@ -31,9 +47,6 @@ Servo servoMotor;
 const int servoPin = 5;
 int servoPos = 0;
 
-MultiStepper steppers;
-int maxSpeed = 3000;  // Default maxSpeed
-
 File file;
 const int chipSelect = 10;
 int highlightedFileIndex = 0;
@@ -45,7 +58,39 @@ bool running = false;
 
 void setup ()
 {
-  Serial.begin(9600);
+  Serial.begin(9600); // For USB comms
+  // while (!Serial);  // Wait for Serial connection (important on SAMD)
+
+  Serial1.begin(115200); // Driver 1
+  pinPeripheral(20, PIO_SERCOM); // RX
+  pinPeripheral(21, PIO_SERCOM); // TX
+  mySerial.begin(115200); // Driver 2
+
+  Serial.println("Serials setup");
+  driver1.begin();
+  driver1.toff(5);
+  driver1.rms_current(600);
+  driver1.microsteps(16);
+  driver1.en_spreadCycle(false);
+  driver1.pdn_disable(true);        // Enable UART control
+  driver1.I_scale_analog(false);
+
+  driver2.begin();
+  driver2.toff(5);
+  driver2.rms_current(600);
+  driver2.microsteps(16);
+  driver2.en_spreadCycle(false);
+  driver2.pdn_disable(true);
+  driver2.I_scale_analog(false);
+
+  stepper1.setMaxSpeed(maxSpeed);
+  stepper2.setMaxSpeed(maxSpeed);
+
+  steppers.addStepper(stepper1);
+  steppers.addStepper(stepper2);
+
+  Serial.println("Drivers setup");
+
   servoMotor.attach(servoPin);
 
   while (!SD.begin(chipSelect)) {
@@ -55,15 +100,7 @@ void setup ()
     digitalWrite(LED_BUILTIN, LOW);
     delay(500);
   }
-
-  //file = SD.open("PATH.TXT");
-  //while (!file) {
-  //  Serial.println("File open failed!");
-  //  digitalWrite(LED_BUILTIN, HIGH);
-  //  delay(2000);
-  //  digitalWrite(LED_BUILTIN, LOW);
-  //  delay(500);
-  //}
+  Serial.println("SD card setup");
 
   // Rotatory encoder
   pinMode (inputCLK, INPUT);
@@ -75,11 +112,7 @@ void setup ()
   attachInterrupt(digitalPinToInterrupt(2), checkEncoderState, CHANGE);
   attachInterrupt(digitalPinToInterrupt(9), checkEncoderSwitch, RISING);
 
-  stepper1.setMaxSpeed(maxSpeed);
-  stepper2.setMaxSpeed(maxSpeed);
-
-  steppers.addStepper(stepper1);
-  steppers.addStepper(stepper2);
+  Serial.println("Interupts setup");
 
 
   display.begin(i2c_Address, true);
