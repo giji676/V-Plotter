@@ -2,10 +2,11 @@ import time
 import subprocess
 
 from PyQt5.QtCore import QThread, pyqtSignal
-from PIL import Image
+from PIL import Image, ImageFilter
 
 from src.image_processing import dithering
 from src.image_processing.wave import wave
+from src.image_processing.cross_hatching import CrossHatching
 from . import path_maker, constants
 
 
@@ -53,8 +54,6 @@ class WorkerThread(QThread):
                 self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
             self.update_signal.emit(f"Average time: {round(sum(times)/len(times), 3)} seconds")
             image = img
-
-            self.finish_signal.emit()
         else:
             start_time = time.time()
             self.update_signal.emit("Starting conversion to wave")
@@ -70,6 +69,14 @@ class WorkerThread(QThread):
             image = img
 
         self.image = image
+        self.image_signal.emit()
+
+    def crossHatch(self, image, update_signal, layers, spacing):
+        self.update_signal.emit("Starting cross-hatching")
+        cross_hatching = CrossHatching(image, update_signal, layers, spacing)
+        image = cross_hatching.crossHatch()
+        self.image = image.filter(ImageFilter.GaussianBlur(radius=0.2))
+        self.update_signal.emit("Finished cross-hatching")
         self.image_signal.emit()
 
     def linkern(self) -> None:

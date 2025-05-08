@@ -27,16 +27,18 @@ class ProcessImage(QWidget):
         self.btn_scale = QPushButton("Scale")
         self.btn_grayscale = QPushButton("Grayscale")
         self.btn_colourscale = QPushButton("Colour scale")
-        self.btn_dither = QPushButton("Dither")
-        self.btn_wave = QPushButton("Wave")
         self.btn_remove_bg = QPushButton("Remove BG")
-        self.btn_make_path = QPushButton("Make Path")
         self.btn_convert_to_steps = QPushButton("Convert to steps")
         self.btn_save_image = QPushButton("Save Image")
         self.btn_crop = QPushButton("Crop")
         self.cbx_min_pen_pickup = QCheckBox("Use Minimum Pen Pickup Distance")
         self.cmb_processing_selector = QComboBox()
 
+        # TSP
+        self.btn_dither = QPushButton("Dither")
+        self.btn_make_path = QPushButton("Make Path")
+
+        # WAVE
         self.lbl_ystep = QLabel("Lines")
         self.txt_ystep = QLineEdit("100")
         self.lbl_xstep = QLabel("X Step")
@@ -45,6 +47,14 @@ class ProcessImage(QWidget):
         self.txt_xsmooth = QLineEdit("128")
         self.lbl_stroke_width = QLabel("Stroke Width")
         self.txt_stroke_width = QLineEdit("1")
+        self.btn_wave = QPushButton("Wave")
+
+        # CROSS HATCHING
+        self.lbl_layers = QLabel("Layers")
+        self.txt_layers = QLineEdit("10")
+        self.lbl_spacing = QLabel("Spacing")
+        self.txt_spacing = QLineEdit("5")
+        self.btn_cross_hatch = QPushButton("Cross-Hatch")
 
     def setupUI(self) -> None:
         self.left_input_panel = QWidget()
@@ -52,12 +62,13 @@ class ProcessImage(QWidget):
         self.image_canvas = ProcessCanvas()
         self.image_canvas.process_image_window = self
 
-        self.cmb_processing_selector.addItems(["Select Processing Type", "TSP", "Wave"])
+        self.cmb_processing_selector.addItems(["Select Processing Type", "TSP", "Wave", "Cross-hatching"])
         self.cmb_processing_selector.currentTextChanged.connect(self.onProcessingChange)
 
         self.frames = {}
         self.frames["TSP"] = self.createTSPFrame()
         self.frames["Wave"] = self.createWaveFrame()
+        self.frames["Cross-hatching"] = self.createCrossHatchFrame()
 
         self.lbl_output = QLabel("Output")
         self.output_text_edit = QTextEdit()
@@ -71,6 +82,7 @@ class ProcessImage(QWidget):
         self.btn_grayscale.clicked.connect(self.image_canvas.grayscale)
         self.btn_dither.clicked.connect(self.startDither)
         self.btn_wave.clicked.connect(self.startWave)
+        self.btn_cross_hatch.clicked.connect(self.startCrossHatch)
         self.btn_remove_bg.clicked.connect(self.image_canvas.removeBg)
         self.btn_colourscale.clicked.connect( self.image_canvas.quantizeGrayscaleImage)
         self.btn_make_path.clicked.connect(self.startLinkern)
@@ -145,6 +157,18 @@ class ProcessImage(QWidget):
 
         return frame
 
+    def createCrossHatchFrame(self) -> QFrame:
+        frame = QFrame()
+
+        lyt_frame = QGridLayout(frame)
+        lyt_frame.addWidget(self.lbl_layers, 0, 0)
+        lyt_frame.addWidget(self.txt_layers, 0, 1)
+        lyt_frame.addWidget(self.lbl_spacing, 1, 0)
+        lyt_frame.addWidget(self.txt_spacing, 1, 1)
+        lyt_frame.addWidget(self.btn_cross_hatch, 2, 0, 2, 2)
+
+        return frame
+
     def createTSPFrame(self) -> QFrame:
         frame = QFrame()
 
@@ -173,6 +197,19 @@ class ProcessImage(QWidget):
                                     float(self.txt_xstep.text()),
                                     float(self.txt_xsmooth.text()),
                                     float(self.txt_stroke_width.text()))
+
+        self.worker_thread.start()
+
+    def startCrossHatch(self):
+        if self.image_canvas.input_image is None:
+            return
+        image = self.image_canvas.qpixmapToImage2(self.image_canvas.input_image).convert("L")
+
+        self.worker_thread.set_task(self.worker_thread.crossHatch,
+                                    image,
+                                    self.worker_thread.update_signal,
+                                    int(self.txt_layers.text()),
+                                    int(self.txt_spacing.text()))
 
         self.worker_thread.start()
 

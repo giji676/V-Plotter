@@ -3,10 +3,12 @@ import numpy as np
 import random
 
 from PIL import Image, ImageFilter, ImageDraw
+from PyQt5.QtCore import pyqtSignal
 
 class CrossHatching:
-    def __init__(self, image: Image, layers: int, spacing: float):
+    def __init__(self, image: Image, update_signal, layers: int, spacing: float):
         self.image = image.convert("L")
+        self.update_signal = update_signal
         self.layers = layers
         self.spacing = spacing
 
@@ -15,14 +17,17 @@ class CrossHatching:
         self.angle_delta = 360/(self.layers+1)
 
         self.output_image = Image.new("RGB", (self.image.width, self.image.height), color="white")
-        self.draw_image = ImageDraw.Draw(self.output_image)
+        self.image_draw = ImageDraw.Draw(self.output_image)
 
-        for layer in range(self.layers-1, 0, -1):
-            self.crossHatch(layer, self.draw_image)
+    def crossHatch(self):
+        for layer in range(self.layers-0, 0, -1):
+            self.hatchLayer(layer)
+            self.update_signal.emit(f"Hatching {int((self.layers-layer+1)/self.layers*100)}%")
         self.output_image = self.output_image.filter(ImageFilter.GaussianBlur(radius=0.5))
-        self.output_image.show()
+        return self.output_image
 
-    def crossHatch(self, layer, image_draw):
+    """ TODO: instead of ploting points along the whole line, draw a line from start to end """
+    def hatchLayer(self, layer):
         angle_deg = self.starting_angle + layer * self.angle_delta
         angle_rad = math.radians(angle_deg)
 
@@ -51,7 +56,8 @@ class CrossHatching:
                 if not (0 <= ix < self.image.width and 0 <= iy < self.image.height):
                     continue
                 if int(self.image.getpixel((ix, iy)) / self.color_scaler) <= layer:
-                    image_draw.point((ix, iy), fill=(0, 0, 0))
+                    self.image_draw.point((ix, iy), fill=(0, 0, 0))
+        return self.image
 
     def trace_line(self, start, direction, length, step_size=0.5):
         x, y = start
