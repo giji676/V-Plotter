@@ -22,7 +22,8 @@ def wave(image: Image, update_signal: pyqtSignal, output_file: str, ystep=100, x
     max_phase_incr =  TWO_PI * xstep / stroke_width
 
     scaled_y_step = image.height / ystep
-    ymult = scaled_y_step/IMAGE_SCALE_UP/2
+    # ymult = scaled_y_step/(IMAGE_SCALE_UP)
+    ymult = IMAGE_SCALE_UP*2
     odd_row = False
     final_row = False
     reverse_row = False

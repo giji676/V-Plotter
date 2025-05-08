@@ -95,7 +95,9 @@ class ConfigureMachine(QWidget):
 
         self.setLayout(self.lyt_configure_machine_tab)
 
+        """ TODO: make sure all the settings are getting saved """
         # Connecting the inputs to their functions
+        self.txt_steps_per_rev.textChanged.connect(self.processSettings)
         self.txt_paper_offset.textChanged.connect(self.processSettings)
         self.txt_motor_dist.textChanged.connect(self.processSettings)
         self.txt_paper_dimenions_1.textChanged.connect(self.processSettings)
@@ -113,7 +115,6 @@ class ConfigureMachine(QWidget):
         self.settings["beltToothDistance"] = int(
             self.txt_belt_tooth_distance.text())
         self.settings["toothOngear"] = int(self.txt_tooth_on_gear.text())
-        print(self.txt_steps_per_rev.text())
         self.settings["stepsPerRev"] = int(self.txt_steps_per_rev.text())
         self.settings["motorDir"] = [
             int(self.txt_motor_dir_1.text()),
