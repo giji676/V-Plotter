@@ -57,7 +57,6 @@ class CrossHatching:
                     continue
                 if int(self.image.getpixel((ix, iy)) / self.color_scaler) <= layer:
                     self.image_draw.point((ix, iy), fill=(0, 0, 0))
-        return self.image
 
     def trace_line(self, start, direction, length, step_size=0.5):
         x, y = start
