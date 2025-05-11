@@ -1,7 +1,9 @@
 /settings.json
 generated_files/
 build/
+build_c/
 dist/
+dlls/
 .\vscode
 __pycache__/
 .venv/

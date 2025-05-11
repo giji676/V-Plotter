@@ -6,7 +6,7 @@ LDFLAGS = -shared
 # Directories
 SRC_DIR = src/c/image_processing
 BUILD_DIR = build_c
-OUTPUT_DIR = output
+OUTPUT_DIR = dlls
 OUT_NAME = image.dll
 
 # Source and object files
