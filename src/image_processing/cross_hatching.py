@@ -38,7 +38,7 @@ class CrossHatching:
         segment_count = ctypes.c_int(0)
 
         for layer in range(self.layers):
-            self.update_signal.emit(f"Hatching {int((self.layers-layer+1)/self.layers*100)}%")
+            self.update_signal.emit(f"Hatching {int((layer+1)/self.layers*100)}%")
             segments_ptr = self.lib.crossHatch(img_ptr, ctypes.byref(segment_count),
                                                self.image.width, self.image.height,
                                                self.layers, layer,
