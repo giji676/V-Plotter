@@ -23,11 +23,6 @@ class MyWindow(QMainWindow):
         # vvvv temp
         self.tab_process_image.image_canvas.loadImage(r"C:\Users\tvten\Desktop\V-Plot shit\JO__.png")
 
-        # cross_hatching.CrossHatching(
-        #     self.tab_process_image.image_canvas.qpixmapToImage2(self.tab_process_image.image_canvas.input_image),
-        #     12, 5)
-        # exit()
-
         tab_widget.addTab(self.tab_process_image, "Process Image")
         tab_widget.addTab(self.tab_configure_machine, "Configure Machine")
 

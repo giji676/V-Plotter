@@ -74,7 +74,8 @@ class WorkerThread(QThread):
     def crossHatch(self, image, update_signal, layers, spacing):
         self.update_signal.emit("Starting cross-hatching")
         cross_hatching = CrossHatching(image, update_signal, layers, spacing)
-        self.image = cross_hatching.crossHatch()
+        # self.image = cross_hatching.crossHatch()
+        self.image = cross_hatching.c_crossHatch()
         self.update_signal.emit("Finished cross-hatching")
         self.image_signal.emit()
 

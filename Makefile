@@ -7,7 +7,7 @@ LDFLAGS = -shared
 SRC_DIR = src/c/image_processing
 BUILD_DIR = build_c
 OUTPUT_DIR = dlls
-OUT_NAME = image.dll
+OUT_NAME = image_processing.dll
 
 # Source and object files
 SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
