@@ -9,11 +9,12 @@ from PyQt5.QtCore import pyqtSignal
 from numpy.core.shape_base import atleast_3d
 
 class CrossHatching:
-    def __init__(self, image: Image, update_signal, layers: int, spacing: float):
+    def __init__(self, image: Image, update_signal, output_file: str, layers: int, spacing: float):
         self.image = image.convert("L")
         self.update_signal = update_signal
         self.layers = layers
         self.spacing = spacing
+        self.output_file = output_file
 
         self.color_scaler = 255/(self.layers+1)
         self.starting_angle = random.randint(0, 360)
@@ -37,6 +38,7 @@ class CrossHatching:
         img_ptr = img_arr.ctypes.data_as(ctypes.POINTER(ctypes.c_uint8))
         segment_count = ctypes.c_int(0)
 
+        f = open(self.output_file, "w")
         for layer in range(self.layers):
             self.update_signal.emit(f"Hatching {int((layer+1)/self.layers*100)}%")
             segments_ptr = self.lib.crossHatch(img_ptr, ctypes.byref(segment_count),
@@ -51,6 +53,12 @@ class CrossHatching:
                 y1 = segments_ptr[base + 1]
                 x2 = segments_ptr[base + 2]
                 y2 = segments_ptr[base + 3]
+
+                f.write(f"{x1} {y1}\n")
+                f.write(f"PENDOWN\n")
+                f.write(f"{x2} {y2}\n")
+                f.write(f"PENUP\n")
                 self.image_draw.line(((x1, y1), (x2, y2)), (0,0,0))
             self.lib.freeMem(segments_ptr)
+        f.close()
         return self.output_image
