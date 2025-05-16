@@ -89,6 +89,30 @@ int* crossHatch(uint8_t* image, int* segment_count_ptr,
     return segments_ptr;
 }
 
+void writeSegmentsToFile(int* segments_ptr, int segment_count, int segment_size, char* file_path) {
+    int base;
+    int x1, y1, x2, y2;
+    FILE *fptr = fopen(file_path, "w");
+
+    if (!fptr) {
+        perror("Error opening file");
+        return;
+    }
+
+    for (int i = 0; i < segment_count; i++) {
+        base = i * segment_size;
+        x1 = segments_ptr[base + 0];
+        y1 = segments_ptr[base + 1];
+        x2 = segments_ptr[base + 2];
+        y2 = segments_ptr[base + 3];
+        fprintf(fptr, "%d %d\n", x1, y1);
+        fprintf(fptr, "PENDOWN\n");
+        fprintf(fptr, "%d %d\n", x2, y2);
+        fprintf(fptr, "PENUP\n");
+    }
+    fclose(fptr);
+}
+
 void freeMem(int* ptr) {
     free(ptr);
 }
