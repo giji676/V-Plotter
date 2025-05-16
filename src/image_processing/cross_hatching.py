@@ -42,7 +42,7 @@ class CrossHatching:
         fill = (0,0,0)
         # for layer in reversed(range(2)):
         for layer in reversed(range(self.layers)):
-            self.update_signal.emit(f"Hatching {int((layer+1)/self.layers*100)}%")
+            self.update_signal.emit(f"Hatching {int((self.layers-layer)/self.layers*100)}%")
             segments_ptr = self.lib.crossHatch(img_ptr, ctypes.byref(segment_count),
                                                self.image.width, self.image.height,
                                                self.layers, layer,

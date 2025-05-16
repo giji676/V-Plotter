@@ -5,6 +5,7 @@
 #include <math.h>
 #include <synchapi.h>
 #include <windows.h>
+#include <stdlib.h>
 
 float radian(float angle) {
     return angle * M_PI / 180.0;
@@ -41,9 +42,11 @@ int* crossHatch(uint8_t* image, int* segment_count_ptr,
     }
     int segment_count = -1;
 
+    int layer_offset = (rand() % (2 * spacing + 1)) - spacing;
+
     for (int i = -diag/2; i <= diag/2; i+=spacing) {
-        float cx = width/2.0 + pdx*i - dx*diag/2;
-        float cy = height/2.0 + pdy*i - dy*diag/2;
+        float cx = width/2.0 + pdx*i - dx*diag/2 + layer_offset;
+        float cy = height/2.0 + pdy*i - dy*diag/2 + layer_offset;
 
         bool started = FALSE;
         for (int j = 0; j <= (int)diag/step_size; j++) {
