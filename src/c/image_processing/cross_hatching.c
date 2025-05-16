@@ -7,15 +7,33 @@
 #include <windows.h>
 #include <stdlib.h>
 
+typedef struct {
+    uint8_t* image;
+    int* segment_count_ptr;
+    int width;
+    int height;
+    int layers;
+    int layer;
+    int spacing;
+    float starting_angle;
+    float delta_angle;
+} CrossHatchParams;
+
 float radian(float angle) {
     return angle * M_PI / 180.0;
 }
 
-int* crossHatch(uint8_t* image, int* segment_count_ptr,
-                int width, int height, 
-                int layers, int layer,
-                int spacing, 
-                float starting_angle, float delta_angle) {
+int* crossHatch(CrossHatchParams* params) {
+    uint8_t* image = params->image;
+    int* segment_count_ptr = params->segment_count_ptr;
+    int width = params->width;
+    int height = params->height;
+    int layers = params->layers;
+    int layer = params->layer;
+    int spacing = params->spacing;
+    float starting_angle = params->starting_angle;
+    float delta_angle = params->delta_angle;
+
     float angle_deg = starting_angle + layer * delta_angle;
     float angle_rad = radian(angle_deg);
     int color_scaler = 255/(layers+1);
