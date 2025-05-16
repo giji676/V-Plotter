@@ -39,13 +39,19 @@ class CrossHatching:
         segment_count = ctypes.c_int(0)
 
         f = open(self.output_file, "w")
-        for layer in range(self.layers):
+        fill = (0,0,0)
+        # for layer in reversed(range(2)):
+        for layer in reversed(range(self.layers)):
             self.update_signal.emit(f"Hatching {int((layer+1)/self.layers*100)}%")
             segments_ptr = self.lib.crossHatch(img_ptr, ctypes.byref(segment_count),
                                                self.image.width, self.image.height,
                                                self.layers, layer,
                                                self.spacing,
                                                self.starting_angle, self.angle_delta)
+
+            # fill = (random.randint(0,255),
+            #         random.randint(0,255),
+            #         random.randint(0,255))
 
             for i in range(segment_count.value):
                 base = i * 4
@@ -58,7 +64,7 @@ class CrossHatching:
                 f.write(f"PENDOWN\n")
                 f.write(f"{x2} {y2}\n")
                 f.write(f"PENUP\n")
-                self.image_draw.line(((x1, y1), (x2, y2)), (0,0,0))
+                self.image_draw.line(((x1, y1), (x2, y2)), fill)
             self.lib.freeMem(segments_ptr)
         f.close()
         return self.output_image

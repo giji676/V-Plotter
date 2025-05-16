@@ -39,7 +39,7 @@ int* crossHatch(uint8_t* image, int* segment_count_ptr,
         printf("Failed to allocate memory for segments\n");
         return NULL;
     }
-    int segment_count = 0;
+    int segment_count = -1;
 
     for (int i = -diag/2; i <= diag/2; i+=spacing) {
         float cx = width/2.0 + pdx*i - dx*diag/2;
@@ -47,17 +47,6 @@ int* crossHatch(uint8_t* image, int* segment_count_ptr,
 
         bool started = FALSE;
         for (int j = 0; j <= (int)diag/step_size; j++) {
-            if (segment_count == segments_allocated) {
-                // If allocated memory is full, allocate space for segments_allocation_increment more segments
-                int* temp = realloc(segments_ptr,
-                                    (segments_allocated + segments_allocation_increment) * segment_size * sizeof(int));
-                if (temp == NULL) {
-                    printf("Failed to reallocate memory for segments\n");
-                    return NULL;
-                }
-                segments_ptr = temp;
-                segments_allocated += segments_allocation_increment;
-            }
             cx += dx*step_size;
             cy += dy*step_size;
             if (cx < 0 || cx >= width || cy < 0 || cy >= height) {
@@ -67,6 +56,20 @@ int* crossHatch(uint8_t* image, int* segment_count_ptr,
             uint8_t color = (uint8_t)(image[index]);
             if (color / color_scaler <= layer) {
                 if (!started) {
+                    segment_count++;
+
+                    if (segment_count == segments_allocated) {
+                        // If allocated memory is full, allocate space for segments_allocation_increment more segments
+                        int* temp = realloc(segments_ptr,
+                                            (segments_allocated + segments_allocation_increment) * segment_size * sizeof(int));
+                        if (temp == NULL) {
+                            printf("Failed to reallocate memory for segments\n");
+                            return NULL;
+                        }
+                        segments_ptr = temp;
+                        segments_allocated += segments_allocation_increment;
+                    }
+
                     started = TRUE;
                     segments_ptr[segment_count*segment_size+0] = (int)cx;
                     segments_ptr[segment_count*segment_size+1] = (int)cy;
@@ -74,7 +77,6 @@ int* crossHatch(uint8_t* image, int* segment_count_ptr,
                 segments_ptr[segment_count*segment_size+2] = (int)cx;
                 segments_ptr[segment_count*segment_size+3] = (int)cy;
             } else if (started) {
-                segment_count++;
                 started = FALSE;
             }
         }

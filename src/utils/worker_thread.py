@@ -12,7 +12,6 @@ from . import path_maker, constants
 
 class WorkerThread(QThread):
     # Runs lengthy functions on a separate "worker thread" so the gui doesn't freeze
-    # function_signal is "emited" to set the right function to run (eg. linkern, wave, dithering)
     update_signal = pyqtSignal(str)
     image_signal = pyqtSignal()
 
@@ -74,12 +73,11 @@ class WorkerThread(QThread):
     def crossHatch(self, image, update_signal, layers, spacing):
         start_time = time.time()
         self.update_signal.emit("Starting cross-hatching")
-        cross_hatching = CrossHatching(image, 
+        cross_hatching = CrossHatching(image,
                                        update_signal,
                                        constants.OUTPUT_COODINATES_PATH,
                                        layers,
                                        spacing)
-        # self.image = cross_hatching.crossHatch()
         self.image = cross_hatching.c_crossHatch()
         self.update_signal.emit(f"Finished in: {round(time.time()-start_time, 3)} seconds")
         self.update_signal.emit("Finished cross-hatching")
