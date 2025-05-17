@@ -5,7 +5,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from PIL import Image
 
 from src.image_processing import dithering
-from src.image_processing.wave import wave
+from src.image_processing.wave import Wave
 from src.image_processing.cross_hatching import CrossHatching
 from . import path_maker, constants
 
@@ -41,13 +41,14 @@ class WorkerThread(QThread):
             for _ in range(5):
                 start_time = time.time()
                 self.update_signal.emit("Starting conversion to wave")
-                img = wave(image,
+                wave = Wave(image,
                            update_signal,
                            constants.OUTPUT_COODINATES_PATH,
                            ystep=ystep,
                            xstep=xstep,
                            xsmooth=xsmooth,
                            stroke_width=stroke_width)
+                img = wave.wave()
                 time_took = time.time() - start_time
                 times.append(time_took)
                 self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
@@ -56,13 +57,16 @@ class WorkerThread(QThread):
         else:
             start_time = time.time()
             self.update_signal.emit("Starting conversion to wave")
-            img = wave(image,
+            wave = Wave(image,
                        update_signal,
                        constants.OUTPUT_COODINATES_PATH,
                        ystep=ystep,
                        xstep=xstep,
                        xsmooth=xsmooth,
                        stroke_width=stroke_width)
+            wave.c_wave()
+            return
+            img = wave.wave()
             time_took = time.time() - start_time
             self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
             image = img
