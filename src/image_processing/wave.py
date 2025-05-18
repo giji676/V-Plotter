@@ -16,14 +16,14 @@ class WaveParams(ctypes.Structure):
         ("width", ctypes.c_int),
         ("height", ctypes.c_int),
         ("ystep", ctypes.c_int),
-        ("xsmooth", ctypes.c_float),
-        ("xstep", ctypes.c_float),
-        ("stroke_width", ctypes.c_float),
+        ("xstep", ctypes.c_double),
+        ("xsmooth", ctypes.c_double),
+        ("stroke_width", ctypes.c_double),
     ]
 
 class SegmentArray(ctypes.Structure):
     _fields_ = [
-        ("segment_arr", ctypes.POINTER(ctypes.c_float)),
+        ("segment_arr", ctypes.POINTER(ctypes.c_double)),
         ("segment_count", ctypes.c_int),
         ("segment_size", ctypes.c_int),
         ("segments_allocated", ctypes.c_int),
@@ -51,6 +51,11 @@ class Wave:
         self.lib.wave.argtypes = [ctypes.POINTER(WaveParams)]
         self.lib.wave.restype = ctypes.POINTER(SegmentArray)
 
+        # writeWaveSegmentsToFile
+        self.lib.writeWaveSegmentsToFile.argtypes = [ctypes.POINTER(SegmentArray),
+                                                 ctypes.c_int,
+                                                 ctypes.c_char_p]
+
         # freeAllSegments
         self.lib.freeAllSegments.argtypes = [ctypes.POINTER(SegmentArray),
                                              ctypes.c_int]
@@ -67,35 +72,37 @@ class Wave:
             width=self.image.width,
             height=self.image.height,
             ystep=self.ystep,
-            xsmooth=self.xsmooth,
-            xstep=ctypes.c_float(self.xstep),
-            stroke_width=ctypes.c_float(self.stroke_width)
+            xstep=ctypes.c_double(self.xstep),
+            xsmooth=ctypes.c_double(self.xsmooth),
+            stroke_width=ctypes.c_double(self.stroke_width)
         )
 
         segment_arrays_ptr = self.lib.wave(ctypes.byref(params))
+        self.lib.writeWaveSegmentsToFile(segment_arrays_ptr, segments_array_count.value, self.output_file.encode("utf-8"))
 
         l_x, l_y = None, None
-        for i in range(segments_array_count.value):
-            segment = segment_arrays_ptr[i]
-            print(f"SEGMENT: {i} SEGMENT_COUNT: {segment.segment_count}")
-            for j in range(segment.segment_count):
-                x = segment.segment_arr[j+0]
-                y = segment.segment_arr[j+1]
-                if not (l_x == None and l_y == None):
-                    self.draw.line(((l_x, l_y),(x, y)), (0,0,0), width=int(self.stroke_width*IMAGE_SCALE_UP))
+        for i in range(0, segments_array_count.value, 2):
+            x_segment = segment_arrays_ptr[i+0]
+            y_segment = segment_arrays_ptr[i+1]
+            for j in range(x_segment.segment_count):
+                x = x_segment.segment_arr[j]
+                y = y_segment.segment_arr[j]
+                if not l_x is None and not l_y is None:
+                    self.draw.line(((round(l_x), round(l_y)),
+                                    (round(x), round(y))),
+                                   (0,0,0), width=int(self.stroke_width*IMAGE_SCALE_UP))
                 l_x = x
                 l_y = y
-                print(x, y)
-                self.draw.point((x,y), (0,0,0))
         self.lib.freeAllSegments(segment_arrays_ptr, segments_array_count.value)
-        self.output_image.show()
+        return self.output_image
 
     def wave(self):
         min_phase_incr = 10 * TWO_PI / (self.image.width / self.xstep)
         max_phase_incr =  TWO_PI * self.xstep / self.stroke_width
 
         scaled_y_step = self.image.height / self.ystep
-        ymult = IMAGE_SCALE_UP*2
+        ymult = IMAGE_SCALE_UP * 2
+
         odd_row = False
         final_row = False
         reverse_row = False
@@ -156,13 +163,11 @@ class Wave:
 
                 delta_x = x - last_x
                 delta_ampl = r - last_ampl
-
                 delta_phase = phase - last_phase
 
                 if not final_step:
                     if delta_phase > HALF_PI:
                         vertex_count = math.floor(delta_phase / HALF_PI)
-
                         integer_part = (vertex_count * HALF_PI) / delta_phase
 
                         delta_x_truncate = delta_x * integer_part

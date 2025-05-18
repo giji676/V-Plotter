@@ -19,6 +19,8 @@ typedef struct {
     float delta_angle;
 } CrossHatchParams;
 
+void writeSegmentsToFile(int* segments_ptr, int segment_count, int segment_size, char* file_path);
+
 float radian(float angle) {
     return angle * M_PI / 180.0;
 }

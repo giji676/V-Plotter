@@ -16,49 +16,51 @@ typedef struct {
     int width;
     int height;
     int ystep;
-    int xsmooth;
-    float xstep;
-    float stroke_width;
+    double xstep;
+    double xsmooth;
+    double stroke_width;
 } WaveParams;
 
 typedef struct {
-    float* segment_arr;
+    double* segment_arr;
     int segment_count;
     int segment_size;
     int segments_allocated;
 } SegmentArray;
 
 void initSegmentsArray(SegmentArray* segment_ptr, int count);
-void appendSegmentsArray(SegmentArray* arr, float value);
+void appendSegmentsArray(SegmentArray* arr, double value);
 void freeArray(SegmentArray* arr);
-void reverseArray(float arr[], int start, int end);
+void reverseArray(double arr[], int start, int end);
+void writeWaveSegmentsToFile(SegmentArray* segment_ptr, int count, char* file_path);
 
 SegmentArray* wave(WaveParams* params) {
-    float TWO_PI = 2 * M_PI;
-    float HALF_PI = 0.5 * M_PI;
-    float IMAGE_SCALE_UP = 3;
+    double TWO_PI = 2 * M_PI;
+    double HALF_PI = 0.5 * M_PI;
+    double IMAGE_SCALE_UP = 3;
 
     uint8_t *image_arr = params->image_arr;
     int* segments_array_count_ptr = params->segments_array_count_ptr;
     int width = params->width;
     int height = params->height;
     int ystep = params->ystep;
-    float xsmooth = params->xsmooth;
-    float xstep = params->xstep;
-    float stroke_width = params->stroke_width;
+    double xstep = params->xstep;
+    double xsmooth = params->xsmooth;
+    double stroke_width = params->stroke_width;
 
-    float min_phase_incr = 10 * TWO_PI / (width / xstep);
-    float max_phase_incr =  TWO_PI * xstep / stroke_width;
+    double min_phase_incr = 10 * TWO_PI / (width / xstep);
+    double max_phase_incr =  TWO_PI * xstep / stroke_width;
 
-    float scaled_y_step = (float)height / ystep;
-    float ymult = IMAGE_SCALE_UP * 2;
+    double scaled_y_step = (double)height / ystep;
+    double ymult = IMAGE_SCALE_UP * 2;
 
     bool odd_row = FALSE;
     bool final_row = FALSE;
     bool reverse_row = FALSE;
 
-    int l_x = -1;
-    int l_y = -1;
+    bool l_set = FALSE;
+    double l_x;
+    double l_y;
 
     SegmentArray* segment_arrays = malloc(ystep * sizeof(SegmentArray) * 2);
     if (segment_arrays == NULL) {
@@ -67,7 +69,7 @@ SegmentArray* wave(WaveParams* params) {
     }
 
     int idx = 0;
-    for (float y = 0; (int)y < height-1; y+=scaled_y_step) {
+    for (double y = 0; (int)y < height - 1; y += scaled_y_step) {
         SegmentArray *x_points = &segment_arrays[idx+0];
         SegmentArray *y_points = &segment_arrays[idx+1];
         int start_points_count = 0;
@@ -83,8 +85,8 @@ SegmentArray* wave(WaveParams* params) {
 
         if (y + scaled_y_step >= height) {
             final_row = TRUE;
-            reverse_row = !odd_row;
         }
+        reverse_row = !odd_row;
 
         if (reverse_row) {
             if (y == 0) {
@@ -106,54 +108,49 @@ SegmentArray* wave(WaveParams* params) {
             start_points_count++;
         }
 
-        float phase = 0;
-        float last_phase = 0;
-        float last_ampl = 0;
+        double phase = 0;
+        double last_phase = 0;
+        double last_ampl = 0;
         bool final_step = FALSE;
 
-        float x = 0;
-        float last_x = 0;
+        double x = 1;
+        double last_x = 1;
 
         while (!final_step) {
             x += xstep;
             final_step = (x + xstep) >= width;
 
-            int img_x = (int)x;
-            int img_y = (int)y;
-            if (img_x >= width || img_y >= height || img_x < 0 || img_y < 0) {
-                printf("OVERSHOOT");
-                break;  // or continue / skip as needed
-            }
-            float z = image_arr[img_y * width + img_x];
-            float r = z / ystep * ymult;
+            double z = image_arr[(int)y * width + (int)x];
+            double r = z / ystep * ymult;
 
-            float df = z / xsmooth;
+            double df = z / xsmooth;
             df = MAX(df, min_phase_incr);
             df = MIN(df, max_phase_incr);
 
             phase += df;
 
-            float delta_x = x - last_x;
-            float delta_ampl = r - last_ampl;
-            float delta_phase = phase - last_phase;
+            double delta_x = x - last_x;
+            double delta_ampl = r - last_ampl;
+            double delta_phase = phase - last_phase;
 
             if (!final_step) {
                 if (delta_phase > HALF_PI) {
-                    int vertex_count = floor(delta_phase / HALF_PI);
-                    int integer_part = (vertex_count * HALF_PI) / delta_phase;
+                    double vertex_count = floor(delta_phase / HALF_PI);
+                    double integer_part = (vertex_count * HALF_PI) / delta_phase;
 
-                    float delta_x_truncate = delta_x * integer_part;
+                    double delta_x_truncate = delta_x * integer_part;
 
-                    float x_per_vertex =  delta_x_truncate / vertex_count;
-                    float ampl_per_vertex = (integer_part * delta_ampl) / vertex_count;
+                    double x_per_vertex =  delta_x_truncate / vertex_count;
+                    double ampl_per_vertex = (integer_part * delta_ampl) / vertex_count;
 
-                    for (int i = 0; i < vertex_count; i++) {
+                    for (int i = 0; i < (int)vertex_count; i++) {
                         last_x = last_x + x_per_vertex;
                         last_phase = last_phase + HALF_PI;
                         last_ampl = last_ampl + ampl_per_vertex;
-                        if (l_x == -1 && l_y == -1) {
+                        if (!l_set) {
                             l_x = last_x;
                             l_y = scaled_y_step/2 + (y + sin(last_phase) * last_ampl);
+                            l_set = TRUE;
                         }
                         appendSegmentsArray(x_points, last_x);
                         appendSegmentsArray(y_points, scaled_y_step/2 + (y + sin(last_phase) * last_ampl));
@@ -163,8 +160,8 @@ SegmentArray* wave(WaveParams* params) {
             }
         }
         if (reverse_row) {
-            /*reverseArray(x_points->segment_arr, start_points_count, start_points_count + points_count - 1);*/
-            /*reverseArray(y_points->segment_arr, start_points_count, start_points_count + points_count - 1);*/
+            reverseArray(x_points->segment_arr, start_points_count, start_points_count + points_count - 1);
+            reverseArray(y_points->segment_arr, start_points_count, start_points_count + points_count - 1);
 
             appendSegmentsArray(x_points, 0);
             appendSegmentsArray(y_points, y + scaled_y_step/2);
@@ -184,7 +181,6 @@ SegmentArray* wave(WaveParams* params) {
                 end_points_count++;
             }
         }
-
         if (!final_row) {
             if (reverse_row) {
                 appendSegmentsArray(x_points, -(0.1 * xstep));
@@ -205,17 +201,16 @@ SegmentArray* wave(WaveParams* params) {
 
 void initSegmentsArray(SegmentArray* segment_ptr, int count) {
     segment_ptr->segment_count = 0;
-    segment_ptr->segment_arr = malloc(sizeof(float) * count * segment_ptr->segment_size);
+    segment_ptr->segment_arr = malloc(sizeof(double) * count);
     if (segment_ptr->segment_arr == NULL) {
         printf("Failed to allocate memory for SegmentArray\n");
         exit(-1);
     }
-    segment_ptr->segments_allocated = count * segment_ptr->segment_size;
+    segment_ptr->segments_allocated = count;
 }
-
-void appendSegmentsArray(SegmentArray* segment_ptr, float value) {
+void appendSegmentsArray(SegmentArray* segment_ptr, double value) {
     if (segment_ptr->segment_count >= segment_ptr->segments_allocated) {
-        float *temp = realloc(segment_ptr->segment_arr, sizeof(float) * segment_ptr->segments_allocated * 2);
+        double *temp = realloc(segment_ptr->segment_arr, sizeof(double) * segment_ptr->segments_allocated * 2);
         if (temp == NULL) {
             printf("Failed to expand memory for SegmentArray\n");
             exit(-1);
@@ -223,13 +218,12 @@ void appendSegmentsArray(SegmentArray* segment_ptr, float value) {
         segment_ptr->segment_arr = temp;
         segment_ptr->segments_allocated *= 2;
     }
-    /*printf("%f\n", value);*/
     segment_ptr->segment_arr[segment_ptr->segment_count] = value;
     segment_ptr->segment_count++;
 }
 
-void reverseArray(float arr[], int start, int end) {
-    float temp;
+void reverseArray(double arr[], int start, int end) {
+    double temp;
     while (start < end) {
         temp = arr[start];
         arr[start] = arr[end];
@@ -246,4 +240,26 @@ void freeAllSegments(SegmentArray* arr, int count) {
         }
     }
     free(arr);
+}
+
+void writeWaveSegmentsToFile(SegmentArray* segment_ptr, int count, char* file_path) {
+    FILE *fptr = fopen(file_path, "w");
+
+    if (!fptr) {
+        perror("Error opening file");
+        return;
+    }
+
+    SegmentArray x_points;
+    SegmentArray y_points;
+    for (int i = 0; i < count; i+=2) {
+        x_points = segment_ptr[i+0];
+        y_points = segment_ptr[i+1];
+        for (int j = 0; j < x_points.segment_count; j++) {
+            double x = x_points.segment_arr[j];
+            double y = y_points.segment_arr[j];
+            fprintf(fptr, "%f %f\n", x, y);
+        }
+    }
+    fclose(fptr);
 }

@@ -64,9 +64,7 @@ class WorkerThread(QThread):
                        xstep=xstep,
                        xsmooth=xsmooth,
                        stroke_width=stroke_width)
-            wave.c_wave()
-            return
-            img = wave.wave()
+            img = wave.c_wave()
             time_took = time.time() - start_time
             self.update_signal.emit(f"Finished in: {round(time_took, 3)} seconds")
             image = img
