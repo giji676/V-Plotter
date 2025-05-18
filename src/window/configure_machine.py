@@ -3,6 +3,7 @@ import os
 
 from PyQt5.QtWidgets import (QGridLayout, QHBoxLayout, QLabel, QLineEdit,
                              QPushButton, QSizePolicy, QSpacerItem, QWidget)
+from PyQt5.QtGui import QIntValidator
 
 from src.utils import constants
 from .configuration_canvas import ConfigurationCanvas
@@ -24,30 +25,41 @@ class ConfigureMachine(QWidget):
         # Creating the lables and inputs
         self.lbl_belt_tooth_distance = QLabel("Belt tooth distance")
         self.txt_belt_tooth_distance = QLineEdit()
+        self.txt_belt_tooth_distance.setValidator(QIntValidator())
 
         self.lbl_tooth_on_gear = QLabel("Tooth on gear")
         self.txt_tooth_on_gear = QLineEdit()
+        self.txt_tooth_on_gear.setValidator(QIntValidator())
 
         self.lbl_steps_per_rev = QLabel("Steps per rev")
         self.txt_steps_per_rev = QLineEdit()
+        self.txt_steps_per_rev.setValidator(QIntValidator())
 
         self.lbl_motor_dir = QLabel("Motor direction")
         self.txt_motor_dir_1 = QLineEdit()
         self.txt_motor_dir_2 = QLineEdit()
+        self.txt_motor_dir_1.setValidator(QIntValidator())
+        self.txt_motor_dir_2.setValidator(QIntValidator())
 
         self.lbl_motor_dist = QLabel("Motor distance")
         self.txt_motor_dist = QLineEdit()
+        self.txt_motor_dist.setValidator(QIntValidator())
 
         self.lbl_start_dist = QLabel("Start distance")
         self.txt_start_dist_1 = QLineEdit()
         self.txt_start_dist_2 = QLineEdit()
+        self.txt_start_dist_1.setValidator(QIntValidator())
+        self.txt_start_dist_2.setValidator(QIntValidator())
 
         self.lbl_paper_dimenions = QLabel("Paper dimensions")
         self.txt_paper_dimenions_1 = QLineEdit()
         self.txt_paper_dimenions_2 = QLineEdit()
+        self.txt_paper_dimenions_1.setValidator(QIntValidator())
+        self.txt_paper_dimenions_2.setValidator(QIntValidator())
 
         self.lbl_paper_offset = QLabel("Paper offset")
         self.txt_paper_offset = QLineEdit()
+        self.txt_paper_offset.setValidator(QIntValidator())
 
         self.btn_load_defaults = QPushButton("Load default settings")
         self.btn_save = QPushButton("Save", self)
@@ -95,15 +107,18 @@ class ConfigureMachine(QWidget):
 
         self.setLayout(self.lyt_configure_machine_tab)
 
-        """ TODO: make sure all the settings are getting saved """
         # Connecting the inputs to their functions
+        self.txt_belt_tooth_distance.textChanged.connect(self.processSettings)
+        self.txt_tooth_on_gear.textChanged.connect(self.processSettings)
         self.txt_steps_per_rev.textChanged.connect(self.processSettings)
-        self.txt_paper_offset.textChanged.connect(self.processSettings)
+        self.txt_motor_dir_1.textChanged.connect(self.processSettings)
+        self.txt_motor_dir_2.textChanged.connect(self.processSettings)
         self.txt_motor_dist.textChanged.connect(self.processSettings)
-        self.txt_paper_dimenions_1.textChanged.connect(self.processSettings)
-        self.txt_paper_dimenions_2.textChanged.connect(self.processSettings)
         self.txt_start_dist_1.textChanged.connect(self.processSettings)
         self.txt_start_dist_2.textChanged.connect(self.processSettings)
+        self.txt_paper_dimenions_1.textChanged.connect(self.processSettings)
+        self.txt_paper_dimenions_2.textChanged.connect(self.processSettings)
+        self.txt_paper_offset.textChanged.connect(self.processSettings)
 
         self.btn_save.clicked.connect(self.saveSettings)
         self.btn_load_defaults.clicked.connect(self.loadDefaultSettings)
