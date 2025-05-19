@@ -8,8 +8,8 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 typedef struct {
-    uint8_t* image_arr;
-    int* segments_array_count_ptr;
+    uint8_t *image_arr;
+    int *segments_array_count_ptr;
     int width;
     int height;
     int ystep;
@@ -18,10 +18,10 @@ typedef struct {
     double stroke_width;
 } WaveParams;
 
-SegmentArray* wave(WaveParams* params);
-void init_segments_array(SegmentArray* segment_ptr, int count);
-void append_segments_array(SegmentArray* segment_ptr, double value);
+SegmentArray *wave(WaveParams *params);
+void init_segments_array(SegmentArray *segment_ptr, int count);
+void append_segments_array(SegmentArray *segment_ptr, double value);
 void reverse_array(double arr[], int start, int end);
-void write_wave_segments_to_file(SegmentArray* segment_ptr, int count, char* file_path);
+void write_wave_segments_to_file(SegmentArray *segment_ptr, int count, char *file_path);
 
 #endif // WAVE_H

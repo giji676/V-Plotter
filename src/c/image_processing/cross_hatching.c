@@ -6,9 +6,9 @@
 #include "cross_hatching.h"
 #include "utils.h"
 
-int* cross_hatch(CrossHatchParams* params) {
-    uint8_t* image = params->image;
-    int* segment_count_ptr = params->segment_count_ptr;
+int *cross_hatch(CrossHatchParams *params) {
+    uint8_t *image = params->image;
+    int *segment_count_ptr = params->segment_count_ptr;
     int width = params->width;
     int height = params->height;
     int layers = params->layers;
@@ -36,7 +36,7 @@ int* cross_hatch(CrossHatchParams* params) {
     int segment_size = 4; // Size of a sinalge segment (x1,y1,x2,y2)
     int segments_allocation_increment = 400;
     int segments_allocated = segments_allocation_increment;
-    int* segments_ptr = malloc(segment_size * segments_allocated * sizeof(int));
+    int *segments_ptr = malloc(segment_size * segments_allocated * sizeof(int));
     if (segments_ptr == NULL) {
         printf("Failed to allocate memory for segments\n");
         return NULL;
@@ -64,7 +64,7 @@ int* cross_hatch(CrossHatchParams* params) {
 
                     if (segment_count == segments_allocated) {
                         // If allocated memory is full, allocate space for segments_allocation_increment more segments
-                        int* temp = realloc(segments_ptr,
+                        int *temp = realloc(segments_ptr,
                                             (segments_allocated + segments_allocation_increment) * segment_size * sizeof(int));
                         if (temp == NULL) {
                             printf("Failed to reallocate memory for segments\n");
@@ -90,7 +90,7 @@ int* cross_hatch(CrossHatchParams* params) {
     return segments_ptr;
 }
 
-void write_segments_to_file(int* segments_ptr, int segment_count, int segment_size, char* file_path) {
+void write_segments_to_file(int *segments_ptr, int segment_count, int segment_size, char *file_path) {
     int base;
     int x1, y1, x2, y2;
     FILE *fptr = fopen(file_path, "w");

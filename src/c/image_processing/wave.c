@@ -8,13 +8,13 @@
 
 // 0.488secs default params
 
-SegmentArray* wave(WaveParams* params) {
+SegmentArray *wave(WaveParams *params) {
     double TWO_PI = 2 * M_PI;
     double HALF_PI = 0.5 * M_PI;
     double IMAGE_SCALE_UP = 3;
 
     uint8_t *image_arr = params->image_arr;
-    int* segments_array_count_ptr = params->segments_array_count_ptr;
+    int *segments_array_count_ptr = params->segments_array_count_ptr;
     int width = params->width;
     int height = params->height;
     int ystep = params->ystep;
@@ -36,7 +36,7 @@ SegmentArray* wave(WaveParams* params) {
     double l_x;
     double l_y;
 
-    SegmentArray* segment_arrays = malloc(ystep * sizeof(SegmentArray) * 2);
+    SegmentArray *segment_arrays = malloc(ystep * sizeof(SegmentArray) * 2);
     if (segment_arrays == NULL) {
         printf("Failed to allocate memory for segment arrays\n");
         return NULL;
@@ -173,7 +173,7 @@ SegmentArray* wave(WaveParams* params) {
     return segment_arrays;
 }
 
-void init_segments_array(SegmentArray* segment_ptr, int count) {
+void init_segments_array(SegmentArray *segment_ptr, int count) {
     segment_ptr->segment_count = 0;
     segment_ptr->segment_arr = malloc(sizeof(double) * count);
     if (segment_ptr->segment_arr == NULL) {
@@ -182,7 +182,7 @@ void init_segments_array(SegmentArray* segment_ptr, int count) {
     }
     segment_ptr->segments_allocated = count;
 }
-void append_segments_array(SegmentArray* segment_ptr, double value) {
+void append_segments_array(SegmentArray *segment_ptr, double value) {
     if (segment_ptr->segment_count >= segment_ptr->segments_allocated) {
         double *temp = realloc(segment_ptr->segment_arr, sizeof(double) * segment_ptr->segments_allocated * 2);
         if (temp == NULL) {
@@ -207,7 +207,7 @@ void reverse_array(double arr[], int start, int end) {
     }
 }
 
-void write_wave_segments_to_file(SegmentArray* segment_ptr, int count, char* file_path) {
+void write_wave_segments_to_file(SegmentArray *segment_ptr, int count, char *file_path) {
     FILE *fptr = fopen(file_path, "w");
 
     if (!fptr) {
