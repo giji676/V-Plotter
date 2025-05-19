@@ -52,12 +52,12 @@ class Wave:
         self.lib.wave.restype = ctypes.POINTER(SegmentArray)
 
         # writeWaveSegmentsToFile
-        self.lib.writeWaveSegmentsToFile.argtypes = [ctypes.POINTER(SegmentArray),
+        self.lib.write_wave_segments_to_file.argtypes = [ctypes.POINTER(SegmentArray),
                                                  ctypes.c_int,
                                                  ctypes.c_char_p]
 
-        # freeAllSegments
-        self.lib.freeAllSegments.argtypes = [ctypes.POINTER(SegmentArray),
+        # free_segments_array
+        self.lib.free_segments_array.argtypes = [ctypes.POINTER(SegmentArray),
                                              ctypes.c_int]
 
     def c_wave(self):
@@ -78,7 +78,7 @@ class Wave:
         )
 
         segment_arrays_ptr = self.lib.wave(ctypes.byref(params))
-        self.lib.writeWaveSegmentsToFile(segment_arrays_ptr, segments_array_count.value, self.output_file.encode("utf-8"))
+        self.lib.write_wave_segments_to_file(segment_arrays_ptr, segments_array_count.value, self.output_file.encode("utf-8"))
 
         l_x, l_y = None, None
         for i in range(0, segments_array_count.value, 2):
@@ -93,7 +93,7 @@ class Wave:
                                    (0,0,0), width=int(self.stroke_width*IMAGE_SCALE_UP))
                 l_x = x
                 l_y = y
-        self.lib.freeAllSegments(segment_arrays_ptr, segments_array_count.value)
+        self.lib.free_segments_array(segment_arrays_ptr, segments_array_count.value)
         return self.output_image
 
     def wave(self):

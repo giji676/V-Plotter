@@ -1,31 +1,12 @@
-#include <minwindef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
-#include <synchapi.h>
-#include <windows.h>
 #include <stdlib.h>
+#include "cross_hatching.h"
+#include "utils.h"
 
-typedef struct {
-    uint8_t* image;
-    int* segment_count_ptr;
-    int width;
-    int height;
-    int layers;
-    int layer;
-    int spacing;
-    float starting_angle;
-    float delta_angle;
-} CrossHatchParams;
-
-void writeSegmentsToFile(int* segments_ptr, int segment_count, int segment_size, char* file_path);
-
-float radian(float angle) {
-    return angle * M_PI / 180.0;
-}
-
-int* crossHatch(CrossHatchParams* params) {
+int* cross_hatch(CrossHatchParams* params) {
     uint8_t* image = params->image;
     int* segment_count_ptr = params->segment_count_ptr;
     int width = params->width;
@@ -68,7 +49,7 @@ int* crossHatch(CrossHatchParams* params) {
         float cx = width/2.0 + pdx*i - dx*diag/2 + layer_offset;
         float cy = height/2.0 + pdy*i - dy*diag/2 + layer_offset;
 
-        bool started = FALSE;
+        bool started = false;
         for (int j = 0; j <= (int)diag/step_size; j++) {
             cx += dx*step_size;
             cy += dy*step_size;
@@ -93,14 +74,14 @@ int* crossHatch(CrossHatchParams* params) {
                         segments_allocated += segments_allocation_increment;
                     }
 
-                    started = TRUE;
+                    started = true;
                     segments_ptr[segment_count*segment_size+0] = (int)cx;
                     segments_ptr[segment_count*segment_size+1] = (int)cy;
                 }
                 segments_ptr[segment_count*segment_size+2] = (int)cx;
                 segments_ptr[segment_count*segment_size+3] = (int)cy;
             } else if (started) {
-                started = FALSE;
+                started = false;
             }
         }
     }
@@ -109,7 +90,7 @@ int* crossHatch(CrossHatchParams* params) {
     return segments_ptr;
 }
 
-void writeSegmentsToFile(int* segments_ptr, int segment_count, int segment_size, char* file_path) {
+void write_segments_to_file(int* segments_ptr, int segment_count, int segment_size, char* file_path) {
     int base;
     int x1, y1, x2, y2;
     FILE *fptr = fopen(file_path, "w");
@@ -131,8 +112,4 @@ void writeSegmentsToFile(int* segments_ptr, int segment_count, int segment_size,
         fprintf(fptr, "PENUP\n");
     }
     fclose(fptr);
-}
-
-void freeMem(int* ptr) {
-    free(ptr);
 }
