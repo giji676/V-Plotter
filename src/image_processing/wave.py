@@ -25,7 +25,6 @@ class SegmentArray(ctypes.Structure):
     _fields_ = [
         ("segment_arr", ctypes.POINTER(ctypes.c_double)),
         ("segment_count", ctypes.c_int),
-        ("segment_size", ctypes.c_int),
         ("segments_allocated", ctypes.c_int),
     ]
 
@@ -51,7 +50,7 @@ class Wave:
         self.lib.wave.argtypes = [ctypes.POINTER(WaveParams)]
         self.lib.wave.restype = ctypes.POINTER(SegmentArray)
 
-        # writeWaveSegmentsToFile
+        # write_wave_segments_to_file
         self.lib.write_wave_segments_to_file.argtypes = [ctypes.POINTER(SegmentArray),
                                                  ctypes.c_int,
                                                  ctypes.c_char_p]

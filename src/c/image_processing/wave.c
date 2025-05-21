@@ -49,11 +49,9 @@ SegmentArray *wave(WaveParams *params) {
         int start_points_count = 0;
         int points_count = 0;
         int end_points_count = 0;
-        x_points->segment_size = 2;
-        y_points->segment_size = 2;
 
-        init_segments_array(x_points, width*x_points->segment_size);
-        init_segments_array(y_points, width*y_points->segment_size);
+        init_segments_array(x_points, width);
+        init_segments_array(y_points, width);
 
         odd_row = !odd_row;
 
@@ -171,29 +169,6 @@ SegmentArray *wave(WaveParams *params) {
     *segments_array_count_ptr = idx;
 
     return segment_arrays;
-}
-
-void init_segments_array(SegmentArray *segment_ptr, int count) {
-    segment_ptr->segment_count = 0;
-    segment_ptr->segment_arr = malloc(sizeof(double) * count);
-    if (segment_ptr->segment_arr == NULL) {
-        printf("Failed to allocate memory for SegmentArray\n");
-        exit(-1);
-    }
-    segment_ptr->segments_allocated = count;
-}
-void append_segments_array(SegmentArray *segment_ptr, double value) {
-    if (segment_ptr->segment_count >= segment_ptr->segments_allocated) {
-        double *temp = realloc(segment_ptr->segment_arr, sizeof(double) * segment_ptr->segments_allocated * 2);
-        if (temp == NULL) {
-            printf("Failed to expand memory for SegmentArray\n");
-            exit(-1);
-        }
-        segment_ptr->segment_arr = temp;
-        segment_ptr->segments_allocated *= 2;
-    }
-    segment_ptr->segment_arr[segment_ptr->segment_count] = value;
-    segment_ptr->segment_count++;
 }
 
 void reverse_array(double arr[], int start, int end) {

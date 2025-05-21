@@ -9,7 +9,6 @@
 typedef struct {
     double *segment_arr;
     int segment_count;
-    int segment_size;
     int segments_allocated;
 } SegmentArray;
 
@@ -18,5 +17,7 @@ void free_mem(int *ptr);
 void free_segments_array(SegmentArray *arr, int count);
 void get_min_max(uint8_t *arr, int width, int height, float *min, float *max);
 float map(float value, float in_min, float in_max, float out_min, float out_max);
+void init_segments_array(SegmentArray *segment_ptr, int count);
+void append_segments_array(SegmentArray *segment_ptr, double value);
 
 #endif // UTILS_H

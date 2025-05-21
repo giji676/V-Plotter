@@ -19,8 +19,6 @@ typedef struct {
 } WaveParams;
 
 SegmentArray *wave(WaveParams *params);
-void init_segments_array(SegmentArray *segment_ptr, int count);
-void append_segments_array(SegmentArray *segment_ptr, double value);
 void reverse_array(double arr[], int start, int end);
 void write_wave_segments_to_file(SegmentArray *segment_ptr, int count, char *file_path);
 

@@ -1,6 +1,7 @@
 #ifndef LINE_DISTORT_H
 #define LINE_DISTORT_H
 
+#include "utils.h"
 #include <stdint.h>
 
 typedef struct {
@@ -13,6 +14,6 @@ typedef struct {
 } LineDistortParams;
 
 
-void line_distort(LineDistortParams *params);
+SegmentArray *line_distort(LineDistortParams *params);
 
 #endif // LINE_DISTORT_H

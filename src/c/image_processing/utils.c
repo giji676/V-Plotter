@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "utils.h"
 
 float radian(float angle) {
@@ -35,3 +36,28 @@ float map(float value, float in_min, float in_max, float out_min, float out_max)
     if (in_max == in_min) return out_min;  // Avoid divide-by-zero
     return (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
+
+void init_segments_array(SegmentArray *segment_ptr, int count) {
+    segment_ptr->segment_count = 0;
+    segment_ptr->segment_arr = malloc(sizeof(double) * count);
+    if (segment_ptr->segment_arr == NULL) {
+        printf("Failed to allocate memory for SegmentArray\n");
+        exit(-1);
+    }
+    segment_ptr->segments_allocated = count;
+}
+
+void append_segments_array(SegmentArray *segment_ptr, double value) {
+    if (segment_ptr->segment_count >= segment_ptr->segments_allocated) {
+        double *temp = realloc(segment_ptr->segment_arr, sizeof(double) * segment_ptr->segments_allocated * 2);
+        if (temp == NULL) {
+            printf("Failed to expand memory for SegmentArray\n");
+            exit(-1);
+        }
+        segment_ptr->segment_arr = temp;
+        segment_ptr->segments_allocated *= 2;
+    }
+    segment_ptr->segment_arr[segment_ptr->segment_count] = value;
+    segment_ptr->segment_count++;
+}
+
