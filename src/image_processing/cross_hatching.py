@@ -43,7 +43,7 @@ class CrossHatching:
         self.lib.cross_hatch.restype = ctypes.POINTER(ctypes.c_int)
 
         # write_segments_to_file
-        self.lib.write_segments_to_file.argtypes = [ctypes.POINTER(ctypes.c_int),
+        self.lib.write_ch_segments_to_file.argtypes = [ctypes.POINTER(ctypes.c_int),
                                                 ctypes.c_int, ctypes.c_int,
                                                 ctypes.c_char_p]
 
@@ -73,7 +73,7 @@ class CrossHatching:
             self.update_signal.emit(f"Hatching {int((self.layers-layer)/self.layers*100)}%")
             segments_ptr = self.lib.cross_hatch(ctypes.byref(params))
 
-            self.lib.write_segments_to_file(segments_ptr, segment_count.value, 4, output_file)
+            self.lib.write_ch_segments_to_file(segments_ptr, segment_count.value, 4, output_file)
 
             for i in range(segment_count.value):
                 base = i * 4

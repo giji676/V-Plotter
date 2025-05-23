@@ -79,7 +79,7 @@ class WorkerThread(QThread):
         self.update_signal.emit("Starting line-distort")
         line_distort = LineDistort(image,
                                    update_signal,
-                                   "",
+                                   constants.OUTPUT_COODINATES_PATH,
                                    rows=rows,
                                    distort_mult=distort_mult)
         self.image = line_distort.c_lineDistort()

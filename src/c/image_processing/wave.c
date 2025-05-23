@@ -171,24 +171,3 @@ SegmentArray *wave(WaveParams *params) {
     return segment_arrays;
 }
 
-void write_wave_segments_to_file(SegmentArray *segment_ptr, int count, char *file_path) {
-    FILE *fptr = fopen(file_path, "w");
-
-    if (!fptr) {
-        perror("Error opening file");
-        return;
-    }
-
-    SegmentArray x_points;
-    SegmentArray y_points;
-    for (int i = 0; i < count; i+=2) {
-        x_points = segment_ptr[i+0];
-        y_points = segment_ptr[i+1];
-        for (int j = 0; j < x_points.segment_count; j++) {
-            double x = x_points.segment_arr[j];
-            double y = y_points.segment_arr[j];
-            fprintf(fptr, "%f %f\n", x, y);
-        }
-    }
-    fclose(fptr);
-}

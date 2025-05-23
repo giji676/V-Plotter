@@ -50,8 +50,8 @@ class Wave:
         self.lib.wave.argtypes = [ctypes.POINTER(WaveParams)]
         self.lib.wave.restype = ctypes.POINTER(SegmentArray)
 
-        # write_wave_segments_to_file
-        self.lib.write_wave_segments_to_file.argtypes = [ctypes.POINTER(SegmentArray),
+        # write_segments_to_file
+        self.lib.write_segments_to_file.argtypes = [ctypes.POINTER(SegmentArray),
                                                  ctypes.c_int,
                                                  ctypes.c_char_p]
 
@@ -77,7 +77,7 @@ class Wave:
         )
 
         segment_arrays_ptr = self.lib.wave(ctypes.byref(params))
-        self.lib.write_wave_segments_to_file(segment_arrays_ptr, segments_array_count.value, self.output_file.encode("utf-8"))
+        self.lib.write_segments_to_file(segment_arrays_ptr, segments_array_count.value, self.output_file.encode("utf-8"))
 
         l_x, l_y = None, None
         for i in range(0, segments_array_count.value, 2):

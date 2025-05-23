@@ -14,7 +14,6 @@ typedef struct {
     int *max_y;
 } LineDistortParams;
 
-
 SegmentArray *line_distort(LineDistortParams *params);
 
 #endif // LINE_DISTORT_H

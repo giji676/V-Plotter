@@ -15,8 +15,8 @@ typedef struct {
     float delta_angle;
 } CrossHatchParams;
 
-void write_segments_to_file(int *segments_ptr, int segment_count, int segment_size, char *file_path);
 int* cross_hatch(CrossHatchParams *params);
+void write_ch_segments_to_file(int *segments_ptr, int segment_count, int segment_size, char *file_path);
 
 #endif // CROSS_HATCHING_H
 

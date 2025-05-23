@@ -35,12 +35,18 @@ class LineDistort:
 
         self.rows = rows
         self.distort_mult = distort_mult
+        self.output_file = output_file
 
         self.lib = ctypes.CDLL("dlls/image_processing.dll")
 
         # line_distort
         self.lib.line_distort.argtypes = [ctypes.POINTER(LineDistortParams)]
         self.lib.line_distort.restype = ctypes.POINTER(SegmentArray)
+
+        # write_segments_to_file
+        self.lib.write_segments_to_file.argtypes = [ctypes.POINTER(SegmentArray),
+                                                 ctypes.c_int,
+                                                 ctypes.c_char_p]
 
         # free_segments_array
         self.lib.free_segments_array.argtypes = [ctypes.POINTER(SegmentArray),
@@ -62,6 +68,7 @@ class LineDistort:
             max_y_ptr=ctypes.pointer(max_y),
         )
         segment_arrays_ptr = self.lib.line_distort(ctypes.byref(params))
+        self.lib.write_segments_to_file(segment_arrays_ptr, segments_array_count.value, self.output_file.encode("utf-8"))
 
         output_image = Image.new("RGB", (self.image.width, max_y.value), color="white")
         draw = ImageDraw.Draw(output_image)
@@ -81,5 +88,4 @@ class LineDistort:
                 l_x = x
                 l_y = y
         self.lib.free_segments_array(segment_arrays_ptr, segments_array_count.value)
-        """ TODO: write coords to file """
         return output_image

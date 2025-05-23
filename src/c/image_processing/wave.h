@@ -19,6 +19,5 @@ typedef struct {
 } WaveParams;
 
 SegmentArray *wave(WaveParams *params);
-void write_wave_segments_to_file(SegmentArray *segment_ptr, int count, char *file_path);
 
 #endif // WAVE_H

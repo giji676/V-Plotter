@@ -20,5 +20,6 @@ float map(float value, float in_min, float in_max, float out_min, float out_max)
 void init_segments_array(SegmentArray *segment_ptr, int count);
 void append_segments_array(SegmentArray *segment_ptr, double value);
 void reverse_array(double arr[], int start, int end);
+void write_segments_to_file(SegmentArray *segment_ptr, int count, char *file_path);
 
 #endif // UTILS_H

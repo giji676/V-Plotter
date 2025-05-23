@@ -90,7 +90,7 @@ int *cross_hatch(CrossHatchParams *params) {
     return segments_ptr;
 }
 
-void write_segments_to_file(int *segments_ptr, int segment_count, int segment_size, char *file_path) {
+void write_ch_segments_to_file(int *segments_ptr, int segment_count, int segment_size, char *file_path) {
     int base;
     int x1, y1, x2, y2;
     FILE *fptr = fopen(file_path, "w");
