@@ -66,21 +66,14 @@ class LineDistort:
         output_image = Image.new("RGB", (self.image.width, max_y.value), color="white")
         draw = ImageDraw.Draw(output_image)
 
+        fill = (0,0,0)
+        l_x, l_y = None, None
         for i in range(0, segments_array_count.value, 2):
-            # fill = (random.randint(0,255),
-            #         random.randint(0,255),
-            #         random.randint(0,255))
-
-            fill = (0,0,0)
-
-            l_x, l_y = None, None
             x_segment = segment_arrays_ptr[i+0]
             y_segment = segment_arrays_ptr[i+1]
             for j in range(x_segment.segment_count):
                 x = x_segment.segment_arr[j]
                 y = y_segment.segment_arr[j]
-                # if i%4 == 0:
-                #     x = self.image.width - x - 1
                 if not l_x is None and not l_y is None:
                     draw.line(((round(l_x), round(l_y)),
                                (round(x), round(y))),

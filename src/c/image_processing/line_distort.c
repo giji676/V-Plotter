@@ -26,6 +26,7 @@ SegmentArray *line_distort(LineDistortParams *params) {
 
     int idx = 0;
     bool segment_start = false;
+    bool reverse_row = false;
 
     for (int y = 0; y < rows; y++) {
         int iy = (int)y*y_scaler;
@@ -65,6 +66,11 @@ SegmentArray *line_distort(LineDistortParams *params) {
                 }
             }
         }
+        if (reverse_row) {
+            reverse_array(x_points->segment_arr, 0, width-1);
+            reverse_array(y_points->segment_arr, 0, width-1);
+        }
+        reverse_row = !reverse_row;
         segment_start = false;
         idx+=2;
     }
