@@ -61,3 +61,14 @@ void append_segments_array(SegmentArray *segment_ptr, double value) {
     segment_ptr->segment_count++;
 }
 
+void reverse_array(double arr[], int start, int end) {
+    double temp;
+    while (start < end) {
+        temp = arr[start];
+        arr[start] = arr[end];
+        arr[end] = temp;
+        start++;
+        end--;
+    }
+}
+

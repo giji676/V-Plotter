@@ -171,17 +171,6 @@ SegmentArray *wave(WaveParams *params) {
     return segment_arrays;
 }
 
-void reverse_array(double arr[], int start, int end) {
-    double temp;
-    while (start < end) {
-        temp = arr[start];
-        arr[start] = arr[end];
-        arr[end] = temp;
-        start++;
-        end--;
-    }
-}
-
 void write_wave_segments_to_file(SegmentArray *segment_ptr, int count, char *file_path) {
     FILE *fptr = fopen(file_path, "w");
 
