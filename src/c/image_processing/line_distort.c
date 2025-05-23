@@ -11,13 +11,15 @@ SegmentArray *line_distort(LineDistortParams *params) {
     int width = params->width;
     int height = params->height;
     int rows = params->rows;
+    int *max_y_ptr = params->max_y;
 
     float y_scaler = (float)height/rows;
-    int max_height = (int)y_scaler*2; // Z height will be scaled to this. Line distort will not go over this value
+    int max_height = (int)y_scaler*0.6; // Z height will be scaled to this. Line distort will not go over this value
     float min;
     float max;
     /* TODO: only go over the values that are part of the row, not every y */
     get_min_max(image, width, height, &min, &max);
+    *max_y_ptr = height+max_height;
 
     SegmentArray* segment_arrays = malloc(rows * sizeof(SegmentArray) * 2);
 
@@ -40,21 +42,22 @@ SegmentArray *line_distort(LineDistortParams *params) {
             double scaled_z = map(z, min, max, 0, max_height);
             if (x == 0) {
                 append_segments_array(x_points, x);
-                append_segments_array(y_points, y_scaler/2 + scaled_z);
+                append_segments_array(y_points, y_scaler/2 + scaled_z + y*y_scaler);
                 segment_start = true;
             } else {
                 if (segment_start) {
                     append_segments_array(x_points, x);
-                    append_segments_array(y_points, y_scaler/2 + scaled_z);
+                    append_segments_array(y_points, y_scaler/2 + scaled_z + y*y_scaler);
                     segment_start = false;
                 } else if (x-1 > 0) {
                     if (x_points->segment_arr[x-1] == x &&
-                        y_points->segment_arr[x-1] == y_scaler/2 + scaled_z) {
-                        y_points->segment_arr[x-1] = y_scaler/2 + scaled_z;
+                        y_points->segment_arr[x-1] == y_scaler/2 + scaled_z + y*y_scaler) {
+                        x_points->segment_arr[x] = x;
+                        y_points->segment_arr[x] = y_scaler/2 + scaled_z + y*y_scaler;
                         segment_start = false;
                     } else {
                         append_segments_array(x_points, x);
-                        append_segments_array(y_points, y_scaler/2 + scaled_z);
+                        append_segments_array(y_points, y_scaler/2 + scaled_z + y*y_scaler);
                         segment_start = false;
                     }
                 }

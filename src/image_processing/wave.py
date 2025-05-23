@@ -57,7 +57,7 @@ class Wave:
 
         # free_segments_array
         self.lib.free_segments_array.argtypes = [ctypes.POINTER(SegmentArray),
-                                             ctypes.c_int]
+                                                 ctypes.c_int]
 
     def c_wave(self):
         # xsmooth = 150 # Bigger => less freq
