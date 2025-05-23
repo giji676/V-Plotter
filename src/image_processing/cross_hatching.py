@@ -38,17 +38,17 @@ class CrossHatching:
 
         self.lib = ctypes.CDLL("dlls/image_processing.dll")
 
-        # crossHatch
-        self.lib.crossHatch.argtypes = [ctypes.POINTER(CrossHatchParams)]
-        self.lib.crossHatch.restype = ctypes.POINTER(ctypes.c_int)
+        # cross_hatch
+        self.lib.cross_hatch.argtypes = [ctypes.POINTER(CrossHatchParams)]
+        self.lib.cross_hatch.restype = ctypes.POINTER(ctypes.c_int)
 
-        # writeSegmentsToFile
-        self.lib.writeSegmentsToFile.argtypes = [ctypes.POINTER(ctypes.c_int),
+        # write_segments_to_file
+        self.lib.write_ch_segments_to_file.argtypes = [ctypes.POINTER(ctypes.c_int),
                                                 ctypes.c_int, ctypes.c_int,
                                                 ctypes.c_char_p]
 
-        # freeMem
-        self.lib.freeMem.argtypes = [ctypes.POINTER(ctypes.c_int)]
+        # free_mem
+        self.lib.free_mem.argtypes = [ctypes.POINTER(ctypes.c_int)]
 
     def c_crossHatch(self):
         img_arr = np.array(self.image, dtype=np.uint8).flatten()
@@ -71,9 +71,9 @@ class CrossHatching:
         for layer in reversed(range(self.layers)):
             params.layer = layer
             self.update_signal.emit(f"Hatching {int((self.layers-layer)/self.layers*100)}%")
-            segments_ptr = self.lib.crossHatch(ctypes.byref(params))
+            segments_ptr = self.lib.cross_hatch(ctypes.byref(params))
 
-            self.lib.writeSegmentsToFile(segments_ptr, segment_count.value, 4, output_file)
+            self.lib.write_ch_segments_to_file(segments_ptr, segment_count.value, 4, output_file)
 
             for i in range(segment_count.value):
                 base = i * 4
@@ -83,5 +83,5 @@ class CrossHatching:
                 y2 = segments_ptr[base + 3]
 
                 self.image_draw.line(((x1, y1), (x2, y2)), (0,0,0))
-            self.lib.freeMem(segments_ptr)
+            self.lib.free_mem(segments_ptr)
         return self.output_image

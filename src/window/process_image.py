@@ -56,19 +56,27 @@ class ProcessImage(QWidget):
         self.txt_spacing = QLineEdit("5")
         self.btn_cross_hatch = QPushButton("Cross-Hatch")
 
+        # LINE DISTORT
+        self.lbl_rows= QLabel("Rows")
+        self.txt_rows= QLineEdit("50")
+        self.lbl_distort_mult = QLabel("Distort Multiplier")
+        self.txt_distort_mult = QLineEdit("0.8")
+        self.btn_line_distort = QPushButton("Line-Distort")
+
     def setupUI(self) -> None:
         self.left_input_panel = QWidget()
         self.left_input_panel.setStyleSheet("background-color: #EEE;")
         self.image_canvas = ProcessCanvas()
         self.image_canvas.process_image_window = self
 
-        self.cmb_processing_selector.addItems(["Select Processing Type", "TSP", "Wave", "Cross-hatching"])
+        self.cmb_processing_selector.addItems(["Select Processing Type", "TSP", "Wave", "Cross-Hatching", "Line-Distort"])
         self.cmb_processing_selector.currentTextChanged.connect(self.onProcessingChange)
 
         self.frames = {}
         self.frames["TSP"] = self.createTSPFrame()
         self.frames["Wave"] = self.createWaveFrame()
-        self.frames["Cross-hatching"] = self.createCrossHatchFrame()
+        self.frames["Cross-Hatching"] = self.createCrossHatchFrame()
+        self.frames["Line-Distort"] = self.createLineDistortFrame()
 
         self.lbl_output = QLabel("Output")
         self.output_text_edit = QTextEdit()
@@ -83,6 +91,7 @@ class ProcessImage(QWidget):
         self.btn_dither.clicked.connect(self.startDither)
         self.btn_wave.clicked.connect(self.startWave)
         self.btn_cross_hatch.clicked.connect(self.startCrossHatch)
+        self.btn_line_distort.clicked.connect(self.startLineDistort)
         self.btn_remove_bg.clicked.connect(self.image_canvas.removeBg)
         self.btn_colourscale.clicked.connect( self.image_canvas.quantizeGrayscaleImage)
         self.btn_make_path.clicked.connect(self.startLinkern)
@@ -157,6 +166,19 @@ class ProcessImage(QWidget):
 
         return frame
 
+    def createLineDistortFrame(self) -> QFrame:
+        frame = QFrame()
+
+        lyt_frame = QGridLayout(frame)
+
+        lyt_frame.addWidget(self.lbl_rows, 0, 0)
+        lyt_frame.addWidget(self.txt_rows, 0, 1)
+        lyt_frame.addWidget(self.lbl_distort_mult, 1, 0)
+        lyt_frame.addWidget(self.txt_distort_mult, 1, 1)
+        lyt_frame.addWidget(self.btn_line_distort, 2, 0, 2, 2)
+
+        return frame
+
     def createCrossHatchFrame(self) -> QFrame:
         frame = QFrame()
 
@@ -200,16 +222,27 @@ class ProcessImage(QWidget):
 
         self.worker_thread.start()
 
-    def startCrossHatch(self):
+    def startLineDistort(self):
         if self.image_canvas.input_image is None:
             return
         image = self.image_canvas.qpixmapToImage2(self.image_canvas.input_image).convert("L")
 
-        self.worker_thread.set_task(self.worker_thread.crossHatch,
+        self.worker_thread.set_task(self.worker_thread.lineDistort,
                                     image,
                                     self.worker_thread.update_signal,
-                                    int(self.txt_layers.text()),
-                                    int(self.txt_spacing.text()))
+                                    int(self.txt_rows.text()),
+                                    float(self.txt_distort_mult.text()))
+
+        self.worker_thread.start()
+
+    def startCrossHatch(self):
+        # if self.image_canvas.input_image is None:
+        #     return
+        # image = self.image_canvas.qpixmapToImage2(self.image_canvas.input_image).convert("L")
+
+        self.worker_thread.set_task(self.worker_thread.crossHatch,
+                                    self.worker_thread.update_signal,
+                                    int(self.txt_rows.text()))
 
         self.worker_thread.start()
 

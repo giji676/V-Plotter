@@ -5,8 +5,10 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from PIL import Image
 
 from src.image_processing import dithering
+from src.image_processing import line_distort
 from src.image_processing.wave import Wave
 from src.image_processing.cross_hatching import CrossHatching
+from src.image_processing.line_distort import LineDistort
 from . import path_maker, constants
 
 
@@ -70,6 +72,19 @@ class WorkerThread(QThread):
             image = img
 
         self.image = image
+        self.image_signal.emit()
+
+    def lineDistort(self, image: Image, update_signal: pyqtSignal, rows, distort_mult):
+        start_time = time.time()
+        self.update_signal.emit("Starting line-distort")
+        line_distort = LineDistort(image,
+                                   update_signal,
+                                   constants.OUTPUT_COODINATES_PATH,
+                                   rows=rows,
+                                   distort_mult=distort_mult)
+        self.image = line_distort.c_lineDistort()
+        self.update_signal.emit(f"Finished in: {round(time.time()-start_time, 3)} seconds")
+        self.update_signal.emit("Finished line-distort")
         self.image_signal.emit()
 
     def crossHatch(self, image, update_signal, layers, spacing):
