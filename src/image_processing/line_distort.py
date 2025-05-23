@@ -17,6 +17,7 @@ class LineDistortParams(ctypes.Structure):
         ("width", ctypes.c_int),
         ("height", ctypes.c_int),
         ("rows", ctypes.c_int),
+        ("distort_mult", ctypes.c_float),
         ("max_y_ptr", ctypes.POINTER(ctypes.c_int))
     ]
 
@@ -28,11 +29,12 @@ class SegmentArray(ctypes.Structure):
     ]
 
 class LineDistort:
-    def __init__(self, image: Image, update_signal: pyqtSignal, output_file: str, rows=1):
+    def __init__(self, image: Image, update_signal: pyqtSignal, output_file: str, rows=1, distort_mult=0.8):
         self.image = ImageOps.invert(image.convert("L"))
         # self.image = image.convert("L")
 
         self.rows = rows
+        self.distort_mult = distort_mult
 
         self.lib = ctypes.CDLL("dlls/image_processing.dll")
 
@@ -56,6 +58,7 @@ class LineDistort:
             width=self.image.width,
             height=self.image.height,
             rows=self.rows,
+            distort_mult=ctypes.c_float(self.distort_mult),
             max_y_ptr=ctypes.pointer(max_y),
         )
         segment_arrays_ptr = self.lib.line_distort(ctypes.byref(params))

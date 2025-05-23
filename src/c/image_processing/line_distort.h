@@ -10,6 +10,7 @@ typedef struct {
     int width;
     int height;
     int rows;
+    float distort_mult;
     int *max_y;
 } LineDistortParams;
 

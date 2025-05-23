@@ -74,13 +74,14 @@ class WorkerThread(QThread):
         self.image = image
         self.image_signal.emit()
 
-    def lineDistort(self, image: Image, update_signal: pyqtSignal, rows):
+    def lineDistort(self, image: Image, update_signal: pyqtSignal, rows, distort_mult):
         start_time = time.time()
         self.update_signal.emit("Starting line-distort")
         line_distort = LineDistort(image,
                                    update_signal,
                                    "",
-                                   rows=rows)
+                                   rows=rows,
+                                   distort_mult=distort_mult)
         self.image = line_distort.c_lineDistort()
         self.update_signal.emit(f"Finished in: {round(time.time()-start_time, 3)} seconds")
         self.update_signal.emit("Finished line-distort")

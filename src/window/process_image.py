@@ -59,6 +59,8 @@ class ProcessImage(QWidget):
         # LINE DISTORT
         self.lbl_rows= QLabel("Rows")
         self.txt_rows= QLineEdit("50")
+        self.lbl_distort_mult = QLabel("Distort Multiplier")
+        self.txt_distort_mult = QLineEdit("0.8")
         self.btn_line_distort = QPushButton("Line-Distort")
 
     def setupUI(self) -> None:
@@ -171,7 +173,9 @@ class ProcessImage(QWidget):
 
         lyt_frame.addWidget(self.lbl_rows, 0, 0)
         lyt_frame.addWidget(self.txt_rows, 0, 1)
-        lyt_frame.addWidget(self.btn_line_distort, 1, 0, 2, 2)
+        lyt_frame.addWidget(self.lbl_distort_mult, 1, 0)
+        lyt_frame.addWidget(self.txt_distort_mult, 1, 1)
+        lyt_frame.addWidget(self.btn_line_distort, 2, 0, 2, 2)
 
         return frame
 
@@ -226,7 +230,8 @@ class ProcessImage(QWidget):
         self.worker_thread.set_task(self.worker_thread.lineDistort,
                                     image,
                                     self.worker_thread.update_signal,
-                                    int(self.txt_rows.text()))
+                                    int(self.txt_rows.text()),
+                                    float(self.txt_distort_mult.text()))
 
         self.worker_thread.start()
 

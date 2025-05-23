@@ -11,10 +11,11 @@ SegmentArray *line_distort(LineDistortParams *params) {
     int width = params->width;
     int height = params->height;
     int rows = params->rows;
+    float distort_mult = params->distort_mult;
     int *max_y_ptr = params->max_y;
 
     float y_scaler = (float)height/rows;
-    int max_height = (int)y_scaler*0.6; // Z height will be scaled to this. Line distort will not go over this value
+    int max_height = (int)y_scaler*distort_mult; // Z height will be scaled to this. Line distort will not go over this value
     float min;
     float max;
     /* TODO: only go over the values that are part of the row, not every y */
@@ -26,8 +27,8 @@ SegmentArray *line_distort(LineDistortParams *params) {
     int idx = 0;
     bool segment_start = false;
 
-    for (float y = 0; (int)y < height; y+=y_scaler) {
-        int iy = (int)y;
+    for (int y = 0; y < rows; y++) {
+        int iy = (int)y*y_scaler;
         SegmentArray *x_points = &segment_arrays[idx+0];
         SegmentArray *y_points = &segment_arrays[idx+1];
         int start_points_count = 0;
@@ -43,22 +44,22 @@ SegmentArray *line_distort(LineDistortParams *params) {
             double scaled_z = map(z, min, max, 0, max_height);
             if (x == 0) {
                 append_segments_array(x_points, x);
-                append_segments_array(y_points, y_scaler/2 + scaled_z + iy);
+                append_segments_array(y_points, scaled_z + iy);
                 segment_start = true;
             } else {
                 if (segment_start) {
                     append_segments_array(x_points, x);
-                    append_segments_array(y_points, y_scaler/2 + scaled_z + iy);
+                    append_segments_array(y_points, scaled_z + iy);
                     segment_start = false;
                 } else if (x-1 > 0) {
                     if (x_points->segment_arr[x-1] == x &&
-                        y_points->segment_arr[x-1] == y_scaler/2 + scaled_z + iy) {
+                        y_points->segment_arr[x-1] == scaled_z + iy) {
                         x_points->segment_arr[x] = x;
-                        y_points->segment_arr[x] = y_scaler/2 + scaled_z + iy;
+                        y_points->segment_arr[x] = scaled_z + iy;
                         segment_start = false;
                     } else {
                         append_segments_array(x_points, x);
-                        append_segments_array(y_points, y_scaler/2 + scaled_z + iy);
+                        append_segments_array(y_points, scaled_z + iy);
                         segment_start = false;
                     }
                 }
