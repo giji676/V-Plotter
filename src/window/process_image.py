@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QFileDialog, QGridLayout,
                              QHBoxLayout, QLabel, QLineEdit,
                              QPushButton, QSizePolicy, QSpacerItem,
                              QTextEdit, QWidget, QCheckBox, QComboBox,
-                             QFrame)
+                             QFrame, QRadioButton)
 
 from src.utils import constants, svg_parser, WorkerThread
 from .process_canvas import ProcessCanvas
@@ -47,6 +47,10 @@ class ProcessImage(QWidget):
         self.txt_xsmooth = QLineEdit("128")
         self.lbl_stroke_width = QLabel("Stroke Width")
         self.txt_stroke_width = QLineEdit("1")
+        self.lbl_wave_dir = QLabel("Wave Direction")
+        self.rbt_wave_horizontal = QRadioButton("Horizontal")
+        self.rbt_wave_vertical = QRadioButton("Vertical")
+        self.rbt_wave_horizontal.setChecked(True)
         self.btn_wave = QPushButton("Wave")
 
         # CROSS HATCHING
@@ -162,7 +166,10 @@ class ProcessImage(QWidget):
         lyt_frame.addWidget(self.txt_xsmooth, 2, 1)
         lyt_frame.addWidget(self.lbl_stroke_width, 3, 0)
         lyt_frame.addWidget(self.txt_stroke_width, 3, 1)
-        lyt_frame.addWidget(self.btn_wave, 5, 0, 2, 2)
+        lyt_frame.addWidget(self.lbl_wave_dir, 4, 0)
+        lyt_frame.addWidget(self.rbt_wave_horizontal, 4, 1)
+        lyt_frame.addWidget(self.rbt_wave_vertical, 5, 1)
+        lyt_frame.addWidget(self.btn_wave, 6, 0, 2, 2)
 
         return frame
 
@@ -209,8 +216,6 @@ class ProcessImage(QWidget):
         if self.image_canvas.input_image is None:
             return
         image = self.image_canvas.qpixmapToImage2(self.image_canvas.input_image).convert("L")
-        # image = Image.fromqpixmap(self.image_canvas.input_image).convert("L")
-        # image = ImageOps.invert(image)
 
         self.worker_thread.set_task(self.worker_thread.wave,
                                     image,
@@ -218,7 +223,8 @@ class ProcessImage(QWidget):
                                     int(self.txt_ystep.text()),
                                     float(self.txt_xstep.text()),
                                     float(self.txt_xsmooth.text()),
-                                    float(self.txt_stroke_width.text()))
+                                    float(self.txt_stroke_width.text()),
+                                    self.rbt_wave_horizontal.isChecked())
 
         self.worker_thread.start()
 

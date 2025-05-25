@@ -19,6 +19,7 @@ class WaveParams(ctypes.Structure):
         ("xstep", ctypes.c_double),
         ("xsmooth", ctypes.c_double),
         ("stroke_width", ctypes.c_double),
+        ("horizontal", ctypes.c_bool),
     ]
 
 class SegmentArray(ctypes.Structure):
@@ -29,7 +30,14 @@ class SegmentArray(ctypes.Structure):
     ]
 
 class Wave:
-    def __init__(self, image: Image, update_signal: pyqtSignal, output_file: str, ystep=100, xstep=3, xsmooth=128, stroke_width=1):
+    def __init__(self, image: Image,
+                 update_signal: pyqtSignal,
+                 output_file: str,
+                 ystep=100,
+                 xstep=3,
+                 xsmooth=128,
+                 stroke_width=1,
+                 horizontal=True):
         # xsmooth = 150 # Bigger => less freq
         self.image = ImageOps.invert(image.convert("L"))
         self.image = self.image.resize((self.image.width*IMAGE_SCALE_UP, self.image.height*IMAGE_SCALE_UP))
@@ -43,6 +51,7 @@ class Wave:
         self.xstep = xstep
         self.xsmooth = xsmooth
         self.stroke_width = stroke_width
+        self.horizontal = horizontal
 
         self.lib = ctypes.CDLL("dlls/image_processing.dll")
 
@@ -73,7 +82,8 @@ class Wave:
             ystep=self.ystep,
             xstep=ctypes.c_double(self.xstep),
             xsmooth=ctypes.c_double(self.xsmooth),
-            stroke_width=ctypes.c_double(self.stroke_width)
+            stroke_width=ctypes.c_double(self.stroke_width),
+            horizontal=self.horizontal
         )
 
         segment_arrays_ptr = self.lib.wave(ctypes.byref(params))

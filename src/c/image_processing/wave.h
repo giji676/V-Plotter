@@ -16,6 +16,7 @@ typedef struct {
     double xstep;
     double xsmooth;
     double stroke_width;
+    bool horizontal;
 } WaveParams;
 
 SegmentArray *wave(WaveParams *params);

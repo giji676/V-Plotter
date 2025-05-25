@@ -21,6 +21,7 @@ SegmentArray *wave(WaveParams *params) {
     double xstep = params->xstep;
     double xsmooth = params->xsmooth;
     double stroke_width = params->stroke_width;
+    bool horizontal = params->horizontal;
 
     double min_phase_incr = 10 * TWO_PI / (width / xstep);
     double max_phase_incr =  TWO_PI * xstep / stroke_width;
