@@ -23,6 +23,12 @@ SegmentArray *wave(WaveParams *params) {
     double stroke_width = params->stroke_width;
     bool horizontal = params->horizontal;
 
+    if (!horizontal) {
+        int temp = width;
+        width = height;
+        height = temp;
+    }
+
     double min_phase_incr = 10 * TWO_PI / (width / xstep);
     double max_phase_incr =  TWO_PI * xstep / stroke_width;
 
@@ -45,8 +51,15 @@ SegmentArray *wave(WaveParams *params) {
 
     int idx = 0;
     for (double y = 0; (int)y < height - 1; y += scaled_y_step) {
-        SegmentArray *x_points = &segment_arrays[idx+0];
-        SegmentArray *y_points = &segment_arrays[idx+1];
+        SegmentArray *x_points;
+        SegmentArray *y_points;
+        if (horizontal) {
+            x_points = &segment_arrays[idx+0];
+            y_points = &segment_arrays[idx+1];
+        } else {
+            x_points = &segment_arrays[idx+1];
+            y_points = &segment_arrays[idx+0];
+        }
         int start_points_count = 0;
         int points_count = 0;
         int end_points_count = 0;
@@ -93,7 +106,12 @@ SegmentArray *wave(WaveParams *params) {
             x += xstep;
             final_step = (x + xstep) >= width;
 
-            double z = image_arr[(int)y * width + (int)x];
+            double z;
+            if (horizontal) {
+                z = image_arr[(int)y * width + (int)x];
+            } else {
+                z = image_arr[(int)x * height + (int)y];
+            }
             double r = z / ystep * ymult;
 
             double df = z / xsmooth;
