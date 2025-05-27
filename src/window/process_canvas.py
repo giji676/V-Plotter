@@ -4,7 +4,7 @@ from rembg import remove, new_session
 
 from PIL import Image
 from PyQt5.QtCore import QPoint, Qt
-from PyQt5.QtGui import QColor, QImage, QPainter, QPixmap, QTransform
+from PyQt5.QtGui import QColor, QImage, QPainter, QPixmap, QTransform, QImage
 from PyQt5.QtWidgets import QWidget
 
 from src.utils import constants, to_steps
@@ -65,7 +65,7 @@ class ProcessCanvas(QWidget):
         if not os.path.exists(path):
             return
 
-        self.input_image = QImage(path)
+        self.input_image = self.imageToQImage(Image.open(path))
         self.update()
 
     def convertToSteps(self) -> None:
@@ -116,6 +116,17 @@ class ProcessCanvas(QWidget):
         pil_image = Image.fromarray(arr, 'RGBA')
 
         return pil_image
+
+    def imageToQImage(self, image):
+        if image == None:
+            return
+        image = image.convert("RGBA")
+        data = image.tobytes("raw", "RGBA")
+
+        qimage = QImage(
+            data, image.size[0], image.size[1], QImage.Format_RGBA8888
+        )
+        return qimage
 
     def removeBg(self) -> None:
         # Removes the background of the image, and replaces it with white background instead of transparent

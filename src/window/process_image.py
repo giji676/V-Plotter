@@ -270,12 +270,7 @@ class ProcessImage(QWidget):
         image = self.worker_thread.image
         if image == None:
             return
-        image = image.convert("RGBA")
-        data = image.tobytes("raw", "RGBA")
-
-        self.image_canvas.input_image = QImage(
-            data, image.size[0], image.size[1], QImage.Format_RGBA8888
-        )
+        self.image_canvas.input_image = self.image_canvas.imageToQImage(image)
         self.image_canvas.update()
 
     def scaleImage(self) -> None:
