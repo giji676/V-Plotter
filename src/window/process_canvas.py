@@ -110,7 +110,7 @@ class ProcessCanvas(QWidget):
 
         # Create a numpy array from the QImage data
         arr = np.array(ptr).reshape((height, width, 4))  # 4 channels (RGBA)
-        arr = arr[..., [2, 1, 0, 3]]  # Swap the Blue and Red channels
+        # arr = arr[..., [2, 1, 0, 3]]  # Swap the Blue and Red channels
 
         # Convert numpy array to PIL Image
         pil_image = Image.fromarray(arr, 'RGBA')
@@ -133,7 +133,7 @@ class ProcessCanvas(QWidget):
         if self.input_image is None:
             return
 
-        image = self.qpixmapToImage2(self.input_image)
+        image = self.qimageToPil(self.input_image)
 
         session = new_session("u2net_lite", providers=["CPUExecutionProvider"])
         image = remove(image, session=session)
