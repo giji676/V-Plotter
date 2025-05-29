@@ -5,7 +5,7 @@ from rembg import remove, new_session
 from PIL import Image
 from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QColor, QImage, QPainter, QPixmap, QTransform, QImage
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QFileDialog
 
 from src.utils import constants, to_steps
 
@@ -132,6 +132,7 @@ class ProcessCanvas(QWidget):
         # Removes the background of the image, and replaces it with white background instead of transparent
         if self.input_image is None:
             return
+        """ TODO: add proper handling of transparent image to all img processing function """
 
         image = self.qimageToPil(self.input_image)
 
@@ -180,10 +181,22 @@ class ProcessCanvas(QWidget):
             return
         self.cropping = not self.cropping
 
-    def saveImage(self) -> None:
+    def saveAs(self) -> None:
         if self.input_image is None:
             return
-        self.input_image.save("test.png")
+
+        file_filter = "Images (*.png *.jpg *.jpeg *.bmp )"
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Save Image As", "", file_filter,
+        )
+        if not path:
+            return
+        self.saveImage(path)
+
+    def saveImage(self, path) -> None:
+        if self.input_image is None:
+            return
+        self.input_image.save(path)
 
     def paintEvent(self, event) -> None:
         # QTs function, updates the canvas

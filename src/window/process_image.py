@@ -29,7 +29,7 @@ class ProcessImage(QWidget):
         self.btn_colourscale = QPushButton("Colour scale")
         self.btn_remove_bg = QPushButton("Remove BG")
         self.btn_convert_to_steps = QPushButton("Convert to steps")
-        self.btn_save_image = QPushButton("Save Image")
+        self.btn_save_as = QPushButton("Save As")
         self.btn_crop = QPushButton("Crop")
         self.cbx_min_pen_pickup = QCheckBox("Use Minimum Pen Pickup Distance")
         self.cmb_processing_selector = QComboBox()
@@ -101,7 +101,7 @@ class ProcessImage(QWidget):
         self.btn_make_path.clicked.connect(self.startLinkern)
         self.btn_convert_to_steps.clicked.connect(self.image_canvas.convertToSteps)
         self.btn_convert_to_steps.setObjectName("testBtn")
-        self.btn_save_image.clicked.connect(self.image_canvas.saveImage)
+        self.btn_save_as.clicked.connect(self.image_canvas.saveAs)
         self.btn_crop.clicked.connect(self.image_canvas.crop)
 
         self.vertical_spacer = QSpacerItem(0, 20, QSizePolicy.Fixed, QSizePolicy.Expanding)
@@ -109,7 +109,7 @@ class ProcessImage(QWidget):
         # Adding the lables and inputs to the layout
         self.lyt_inputs = QGridLayout()
         self.lyt_inputs.addWidget(self.btn_open_image, 0, 0)
-        self.lyt_inputs.addWidget(self.btn_save_image, 0, 1)
+        self.lyt_inputs.addWidget(self.btn_save_as, 0, 1)
         self.lyt_inputs.addWidget(self.btn_clear_all, 1, 0)
         self.lyt_inputs.addWidget(self.btn_rotate_90, 1, 1)
         self.lyt_inputs.addWidget(self.btn_scale, 2, 0)
