@@ -242,13 +242,15 @@ class ProcessImage(QWidget):
         self.worker_thread.start()
 
     def startCrossHatch(self):
-        # if self.image_canvas.input_image is None:
-        #     return
-        # image = self.image_canvas.qpixmapToImage2(self.image_canvas.input_image).convert("L")
+        if self.image_canvas.input_image is None:
+            return
+        image = self.image_canvas.qpixmapToImage2(self.image_canvas.input_image).convert("L")
 
         self.worker_thread.set_task(self.worker_thread.crossHatch,
+                                    image,
                                     self.worker_thread.update_signal,
-                                    int(self.txt_rows.text()))
+                                    int(self.txt_layers.text()),
+                                    int(self.txt_spacing.text()))
 
         self.worker_thread.start()
 
