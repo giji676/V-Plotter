@@ -23,10 +23,7 @@ SegmentArray *wave(WaveParams *params) {
     double stroke_width = params->stroke_width;
     bool horizontal = params->horizontal;
 
-    float max_amp;
-    float min_amp;
-    /* TODO: only go over the values that are part of the row, not every y */
-    get_min_max(image_arr, width, height, &min_amp, &max_amp);
+    float max_amp = 255.0;
 
     if (!horizontal) {
         int temp = width;
