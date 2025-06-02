@@ -23,6 +23,11 @@ SegmentArray *wave(WaveParams *params) {
     double stroke_width = params->stroke_width;
     bool horizontal = params->horizontal;
 
+    float max_amp;
+    float min_amp;
+    /* TODO: only go over the values that are part of the row, not every y */
+    get_min_max(image_arr, width, height, &min_amp, &max_amp);
+
     if (!horizontal) {
         int temp = width;
         width = height;
@@ -33,7 +38,7 @@ SegmentArray *wave(WaveParams *params) {
     double max_phase_incr =  TWO_PI * xstep / stroke_width;
 
     double scaled_y_step = (double)height / ystep;
-    double ymult = IMAGE_SCALE_UP * 2;
+    double ymult = ((scaled_y_step) / 2.0) / 2.55;
 
     bool odd_row = false;
     bool final_row = false;
@@ -50,6 +55,7 @@ SegmentArray *wave(WaveParams *params) {
     }
 
     int idx = 0;
+
     for (double y = 0; (int)y < height - 1; y += scaled_y_step) {
         SegmentArray *x_points;
         SegmentArray *y_points;
@@ -143,6 +149,7 @@ SegmentArray *wave(WaveParams *params) {
                             l_y = scaled_y_step/2 + (y + sin(last_phase) * last_ampl);
                             l_set = true;
                         }
+                        float temp = sin(last_phase) * last_ampl;
                         append_segments_array(x_points, last_x);
                         append_segments_array(y_points, scaled_y_step/2 + (y + sin(last_phase) * last_ampl));
                         points_count++;
