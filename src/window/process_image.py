@@ -104,9 +104,9 @@ class ProcessImage(QWidget):
         self.btn_save_image.clicked.connect(self.image_canvas.saveImage)
         self.btn_crop.clicked.connect(self.image_canvas.crop)
 
-        self.btn_input_image.clicked.connect(lambda: self.imageChange(self.btn_input_image))
-        self.btn_effect_image.clicked.connect(lambda: self.imageChange(self.btn_effect_image))
-        self.btn_processed_image.clicked.connect(lambda: self.imageChange(self.btn_processed_image))
+        self.btn_input_image.clicked.connect(lambda: self.image_canvas.imageChange(self.btn_input_image))
+        self.btn_effect_image.clicked.connect(lambda: self.image_canvas.imageChange(self.btn_effect_image))
+        self.btn_processed_image.clicked.connect(lambda: self.image_canvas.imageChange(self.btn_processed_image))
 
         self.vertical_spacer = QSpacerItem(0, 20, QSizePolicy.Fixed, QSizePolicy.Expanding)
 
@@ -229,16 +229,6 @@ class ProcessImage(QWidget):
         lyt_frame.addWidget(self.btn_make_path, 0, 1)
 
         return frame
-
-    def imageChange(self, btn):
-        match btn:
-            case self.btn_input_image:
-                print("input pressed")
-            case self.btn_effect_image:
-                print("effect pressed")
-            case self.btn_processed_image:
-                print("processed pressed")
-
 
     def startLinkern(self):
         if os.path.exists(constants.TSP_PATH):

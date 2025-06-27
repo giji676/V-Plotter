@@ -38,6 +38,8 @@ class ProcessCanvas(QWidget):
         self.effect_image = None
         self.processed_image = None
 
+        self.display_image = None
+
     def quantizeGrayscaleImage(self) -> None:
         if self.input_image is None:
             return
@@ -184,7 +186,8 @@ class ProcessCanvas(QWidget):
         transform.scale(self.scale_factor, self.scale_factor)
         transform.translate(self.cur_pos.x(), self.cur_pos.y())
         painter.setTransform(transform)
-        painter.drawPixmap(0, 0, QPixmap.fromImage(self.input_image))
+        if self.display_image:
+            painter.drawPixmap(0, 0, QPixmap.fromImage(self.display_image)) # << HERE
 
         if self.cropping and self.crop_pressed:
             painter.drawRect(
@@ -193,6 +196,16 @@ class ProcessCanvas(QWidget):
                 self.crop_end_pos.x(),
                 self.crop_end_pos.y(),
             )
+
+    def imageChange(self, btn):
+        match btn:
+            case self.process_image_window.btn_input_image:
+                self.display_image = self.input_image
+            case self.process_image_window.btn_effect_image:
+                self.display_image = self.effect_image
+            case self.process_image_window.btn_processed_image:
+                self.display_image = self.processed_image
+        self.update()
 
     # Mouse events for moving the image around and zooming in
     def wheelEvent(self, event):
