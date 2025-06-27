@@ -1,5 +1,4 @@
 import os
-import time
 import sys
 
 from PyQt5.QtGui import QIcon, QPixmap
@@ -7,8 +6,6 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget, QSplashScreen
 
 from src.utils import constants
 from src.window import ProcessImage, ConfigureMachine
-
-from src.image_processing import cross_hatching
 
 
 class MyWindow(QMainWindow):

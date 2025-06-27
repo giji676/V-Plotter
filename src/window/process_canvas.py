@@ -35,6 +35,7 @@ class ProcessCanvas(QWidget):
         self.image_scale = 1
 
         self.input_image = None
+        self.effect_image = None
         self.processed_image = None
 
     def quantizeGrayscaleImage(self) -> None:
@@ -54,8 +55,7 @@ class ProcessCanvas(QWidget):
                     int(original_pixel_value / scaling_factor) * scaling_factor
                 )
 
-                quantized_pixel_color = QColor(
-                    scaled_value, scaled_value, scaled_value)
+                quantized_pixel_color = QColor(scaled_value, scaled_value, scaled_value)
                 quantized_image.setPixelColor(x, y, quantized_pixel_color)
 
         self.input_image = quantized_image
@@ -77,7 +77,8 @@ class ProcessCanvas(QWidget):
             constants.OUTPUT_COODINATES_PATH,
             constants.OUTPUT_STEPS_PATH,
             fit=True,
-            min_pen_pickup=self.process_image_window.cbx_min_pen_pickup.isChecked())
+            min_pen_pickup=self.process_image_window.cbx_min_pen_pickup.isChecked(),
+        )
         if steps_output:
             self.process_image_window.updateOutput(steps_output)
 
@@ -113,7 +114,7 @@ class ProcessCanvas(QWidget):
         arr = arr[..., [2, 1, 0, 3]]  # Swap the Blue and Red channels
 
         # Convert numpy array to PIL Image
-        pil_image = Image.fromarray(arr, 'RGBA')
+        pil_image = Image.fromarray(arr, "RGBA")
 
         return pil_image
 
@@ -150,8 +151,7 @@ class ProcessCanvas(QWidget):
         if self.input_image is None:
             return
 
-        self.input_image = self.input_image.convertToFormat(
-            QImage.Format_Grayscale8)
+        self.input_image = self.input_image.convertToFormat(QImage.Format_Grayscale8)
         self.update()
 
     def scale(self) -> None:
@@ -187,10 +187,12 @@ class ProcessCanvas(QWidget):
         painter.drawPixmap(0, 0, QPixmap.fromImage(self.input_image))
 
         if self.cropping and self.crop_pressed:
-            painter.drawRect(self.crop_start_pos.x(),
-                             self.crop_start_pos.y(),
-                             self.crop_end_pos.x(),
-                             self.crop_end_pos.y())
+            painter.drawRect(
+                self.crop_start_pos.x(),
+                self.crop_start_pos.y(),
+                self.crop_end_pos.x(),
+                self.crop_end_pos.y(),
+            )
 
     # Mouse events for moving the image around and zooming in
     def wheelEvent(self, event):
@@ -216,7 +218,9 @@ class ProcessCanvas(QWidget):
             self.update()
         elif self.cropping:
             self.delta = event.pos()
-            self.crop_end_pos = (self.delta - self.crop_start_pos - self.last_pos) / self.scale_factor
+            self.crop_end_pos = (
+                self.delta - self.crop_start_pos - self.last_pos
+            ) / self.scale_factor
             self.update()
 
     def mouseReleaseEvent(self, event):

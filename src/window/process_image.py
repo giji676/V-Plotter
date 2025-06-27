@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QFileDialog, QGridLayout,
                              QHBoxLayout, QLabel, QLineEdit,
                              QPushButton, QSizePolicy, QSpacerItem,
                              QTextEdit, QWidget, QCheckBox, QComboBox,
-                             QFrame)
+                             QFrame, QVBoxLayout)
 
 from src.utils import constants, svg_parser, WorkerThread
 from .process_canvas import ProcessCanvas
@@ -19,6 +19,11 @@ class ProcessImage(QWidget):
         self.setupUI()
 
     def createUIWidgets(self) -> None:
+        # Image seletor buttons
+        self.btn_input_image = QPushButton("Input image")
+        self.btn_effect_image = QPushButton("Effect image")
+        self.btn_processed_image = QPushButton("Processed image")
+
         # Creating the lables and inputs
         self.btn_open_image = QPushButton("Open Image")
         self.btn_clear_all = QPushButton("Clear All")
@@ -57,8 +62,8 @@ class ProcessImage(QWidget):
         self.btn_cross_hatch = QPushButton("Cross-Hatch")
 
         # LINE DISTORT
-        self.lbl_rows= QLabel("Rows")
-        self.txt_rows= QLineEdit("50")
+        self.lbl_rows = QLabel("Rows")
+        self.txt_rows = QLineEdit("50")
         self.lbl_distort_mult = QLabel("Distort Multiplier")
         self.txt_distort_mult = QLineEdit("0.8")
         self.btn_line_distort = QPushButton("Line-Distort")
@@ -96,9 +101,12 @@ class ProcessImage(QWidget):
         self.btn_colourscale.clicked.connect( self.image_canvas.quantizeGrayscaleImage)
         self.btn_make_path.clicked.connect(self.startLinkern)
         self.btn_convert_to_steps.clicked.connect(self.image_canvas.convertToSteps)
-        self.btn_convert_to_steps.setObjectName("testBtn")
         self.btn_save_image.clicked.connect(self.image_canvas.saveImage)
         self.btn_crop.clicked.connect(self.image_canvas.crop)
+
+        self.btn_input_image.clicked.connect(lambda: self.imageChange(self.btn_input_image))
+        self.btn_effect_image.clicked.connect(lambda: self.imageChange(self.btn_effect_image))
+        self.btn_processed_image.clicked.connect(lambda: self.imageChange(self.btn_processed_image))
 
         self.vertical_spacer = QSpacerItem(0, 20, QSizePolicy.Fixed, QSizePolicy.Expanding)
 
@@ -130,15 +138,37 @@ class ProcessImage(QWidget):
 
         self.left_input_panel.setLayout(self.lyt_inputs)
 
+        # Create image selector (buttons in a row)
+        self.lyt_image_selector = QHBoxLayout()
+        self.lyt_image_selector.setSpacing(1)
+        self.lyt_image_selector.addWidget(self.btn_input_image)
+        self.lyt_image_selector.addWidget(self.btn_effect_image)
+        self.lyt_image_selector.addWidget(self.btn_processed_image)
+
+        spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.lyt_image_selector.addItem(spacer)
+
+        # Wrap the selector layout in a QWidget
+        self.image_selector_widget = QWidget()
+        self.image_selector_widget.setLayout(self.lyt_image_selector)
+
+        # Create vertical layout with selector on top and canvas below
+        self.image_right_panel = QVBoxLayout()
+        self.image_right_panel.addWidget(self.image_selector_widget)
+        self.image_right_panel.addWidget(self.image_canvas)
+        self.image_right_panel.setStretchFactor(self.image_selector_widget, 1)
+        self.image_right_panel.setStretchFactor(self.image_canvas, 19)
+
+        # Wrap the right panel layout in a QWidget
+        self.image_right_widget = QWidget()
+        self.image_right_widget.setLayout(self.image_right_panel)
+
+        # Main horizontal layout
         self.lyt_process_image_tab = QHBoxLayout()
         self.lyt_process_image_tab.addWidget(self.left_input_panel)
-        self.lyt_process_image_tab.addWidget(self.image_canvas)
+        self.lyt_process_image_tab.addWidget(self.image_right_widget)
         self.lyt_process_image_tab.setStretchFactor(self.left_input_panel, 2)
-        self.lyt_process_image_tab.setStretchFactor(self.image_canvas, 7)
-
-        self.worker_thread = WorkerThread()
-        self.worker_thread.update_signal.connect(self.updateOutput)
-        self.worker_thread.image_signal.connect(self.imageOutput)
+        self.lyt_process_image_tab.setStretchFactor(self.image_right_widget, 7)
 
         self.setLayout(self.lyt_process_image_tab)
 
@@ -199,6 +229,16 @@ class ProcessImage(QWidget):
         lyt_frame.addWidget(self.btn_make_path, 0, 1)
 
         return frame
+
+    def imageChange(self, btn):
+        match btn:
+            case self.btn_input_image:
+                print("input pressed")
+            case self.btn_effect_image:
+                print("effect pressed")
+            case self.btn_processed_image:
+                print("processed pressed")
+
 
     def startLinkern(self):
         if os.path.exists(constants.TSP_PATH):
