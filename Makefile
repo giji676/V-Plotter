@@ -1,5 +1,11 @@
 # Compiler and flags
-CC = x86_64-w64-mingw32-gcc
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Linux)
+	CC = gcc
+else ifeq ($(OS),Windows_NT)
+	CC = x86_64-w64-mingw32-gcc
+endif#
 CFLAGS = -shared -fPIC   # Generate position-independent code for DLLs
 LDFLAGS = -shared
 
