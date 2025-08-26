@@ -170,6 +170,10 @@ class ProcessImage(QWidget):
         self.lyt_process_image_tab.setStretchFactor(self.left_input_panel, 2)
         self.lyt_process_image_tab.setStretchFactor(self.image_right_widget, 7)
 
+        self.worker_thread = WorkerThread()
+        self.worker_thread.update_signal.connect(self.updateOutput)
+        self.worker_thread.image_signal.connect(self.imageOutput)
+
         self.setLayout(self.lyt_process_image_tab)
 
     def onProcessingChange(self, val):
@@ -236,9 +240,10 @@ class ProcessImage(QWidget):
             self.worker_thread.start()
 
     def startWave(self):
-        if self.image_canvas.input_image is None:
+        image = self.image_canvas.chooseEffectImageToModify()
+        if not Image:
             return
-        image = self.image_canvas.qpixmapToImage2(self.image_canvas.input_image).convert("L")
+        image = self.image_canvas.qpixmapToImage2(image).convert("L")
         # image = Image.fromqpixmap(self.image_canvas.input_image).convert("L")
         # image = ImageOps.invert(image)
 
@@ -253,9 +258,10 @@ class ProcessImage(QWidget):
         self.worker_thread.start()
 
     def startLineDistort(self):
-        if self.image_canvas.input_image is None:
+        image = self.image_canvas.chooseEffectImageToModify()
+        if not Image:
             return
-        image = self.image_canvas.qpixmapToImage2(self.image_canvas.input_image).convert("L")
+        image = self.image_canvas.qpixmapToImage2(image).convert("L")
 
         self.worker_thread.set_task(self.worker_thread.lineDistort,
                                     image,
@@ -277,10 +283,10 @@ class ProcessImage(QWidget):
         self.worker_thread.start()
 
     def startDither(self):
-        if self.image_canvas.input_image is None:
+        image = self.image_canvas.chooseEffectImageToModify()
+        if not Image:
             return
-
-        image = self.image_canvas.qimageToPil(self.image_canvas.input_image).convert("L")
+        image = self.image_canvas.qimageToPil(image).convert("L")
         #image = Image.fromqpixmap(self.image_canvas.input_image).convert("L")
         image = ImageOps.invert(image)
 
@@ -297,13 +303,13 @@ class ProcessImage(QWidget):
         image = image.convert("RGBA")
         data = image.tobytes("raw", "RGBA")
 
-        self.image_canvas.input_image = QImage(
+        self.image_canvas.processed_image = QImage(
             data, image.size[0], image.size[1], QImage.Format_RGBA8888
         )
         self.image_canvas.update()
 
     def scaleImage(self) -> None:
-        if self.image_canvas.input_image is None:
+        if not self.image_canvas.display_image:
             return
 
         self.image_canvas.image_scale = float(self.txt_scale.text())
@@ -311,6 +317,9 @@ class ProcessImage(QWidget):
 
     def clearAll(self) -> None:
         self.image_canvas.input_image = None
+        self.image_canvas.effect_image = None
+        self.image_canvas.processed_image = None
+        self.image_canvas.display_image = None
         self.image_canvas.scale_factor = 1.0
         self.image_canvas.update()
         self.output_text_edit.clear()

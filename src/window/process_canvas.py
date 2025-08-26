@@ -8,6 +8,7 @@ from PyQt5.QtGui import QColor, QImage, QPainter, QPixmap, QTransform
 from PyQt5.QtWidgets import QWidget
 
 from src.utils import constants, to_steps
+# TODO:  update all effect and processing functions to use chooseEffectImageToModify and updateDisplayImage
 
 
 # Canvas that displays the image being processed
@@ -41,13 +42,15 @@ class ProcessCanvas(QWidget):
         self.display_image = None
 
     def quantizeGrayscaleImage(self) -> None:
-        if self.input_image is None:
+        image = self.chooseEffectImageToModify()
+        if not Image:
             return
+
         # Sets the grayscale image colour range to <num_colors> - so instead of 255 colour values it only has <num_colors> amount
         num_colors = 10
         scaling_factor = 255 / (num_colors - 1)
 
-        quantized_image = self.input_image.copy()
+        quantized_image = image.copy()
 
         for x in range(quantized_image.width()):
             for y in range(quantized_image.height()):
@@ -60,15 +63,15 @@ class ProcessCanvas(QWidget):
                 quantized_pixel_color = QColor(scaled_value, scaled_value, scaled_value)
                 quantized_image.setPixelColor(x, y, quantized_pixel_color)
 
-        self.input_image = quantized_image
-        self.update()
+        self.effect_image = quantized_image
+        self.updateDisplayImage(self.effect_image)
 
     def loadImage(self, path: str) -> None:
         if not os.path.exists(path):
             return
 
         self.input_image = QImage(path)
-        self.update()
+        self.updateDisplayImage(self.input_image)
 
     def convertToSteps(self) -> None:
         # Converts the coordinates of the points to steps of the stepper motor based on the <settings>
@@ -120,12 +123,26 @@ class ProcessCanvas(QWidget):
 
         return pil_image
 
+    def chooseEffectImageToModify(self):
+        """
+        If effect image already exists, select that,
+        if it doesn't, select input image,
+        if that doesn't exist either, return None
+        """
+        if self.effect_image:
+            return self.effect_image
+        elif self.input_image:
+            return self.input_image
+        else:
+            return None
+
     def removeBg(self) -> None:
         # Removes the background of the image, and replaces it with white background instead of transparent
-        if self.input_image is None:
+        image = self.chooseEffectImageToModify()
+        if not Image:
             return
 
-        image = self.qpixmapToImage2(self.input_image)
+        image = self.qpixmapToImage2(image)
 
         session = new_session("u2net_lite", providers=["CPUExecutionProvider"])
         image = remove(image, session=session)
@@ -136,35 +153,44 @@ class ProcessCanvas(QWidget):
 
         image = image.convert("RGBA")
         data = image.tobytes("raw", "RGBA")
-        self.input_image = QImage(
+        self.effect_image = QImage(
             data, image.size[0], image.size[1], QImage.Format_RGBA8888
         )
+        self.updateDisplayImage(self.effect_image)
+
+    def updateDisplayImage(self, image):
+        self.display_image = image
         self.update()
 
     def rotate90(self) -> None:
-        if self.input_image is None:
+        print("rotate90 not implemented yet")
+        return
+        image = self.chooseEffectImageToModify()
+        if not Image:
             return
 
-        self.input_image = self.input_image.transformed(QTransform().rotate(90))
-        self.update()
+        self.effect_iamge  = image.transformed(QTransform().rotate(90))
+        self.updateDisplayImage(self.effect_image)
 
     def grayscale(self) -> None:
         # Converts the image to grayscale
-        if self.input_image is None:
+        image = self.chooseEffectImageToModify()
+        if not Image:
             return
 
-        self.input_image = self.input_image.convertToFormat(QImage.Format_Grayscale8)
-        self.update()
+        self.effect_image = image.convertToFormat(QImage.Format_Grayscale8)
+        self.updateDisplayImage(self.effect_image)
 
     def scale(self) -> None:
-        if self.input_image is None:
+        image = self.chooseEffectImageToModify()
+        if not Image:
             return
 
-        self.input_image = self.input_image.scaled(
-            int(self.input_image.width() / self.image_scale),
-            int(self.input_image.height() / self.image_scale),
+        self.effect_image = image.scaled(
+            int(image.width() / self.image_scale),
+            int(image.height() / self.image_scale),
         )
-        self.update()
+        self.updateDisplayImage(self.effect_image)
 
     def crop(self) -> None:
         if self.input_image is None:
@@ -174,11 +200,11 @@ class ProcessCanvas(QWidget):
     def saveImage(self) -> None:
         if self.input_image is None:
             return
-        self.input_image.save("test.png")
+        self.display_image.save("test.png")
 
     def paintEvent(self, event) -> None:
         # QTs function, updates the canvas
-        if self.input_image is None:
+        if self.display_image is None:
             return
 
         painter = QPainter(self)
@@ -187,7 +213,7 @@ class ProcessCanvas(QWidget):
         transform.translate(self.cur_pos.x(), self.cur_pos.y())
         painter.setTransform(transform)
         if self.display_image:
-            painter.drawPixmap(0, 0, QPixmap.fromImage(self.display_image)) # << HERE
+            painter.drawPixmap(0, 0, QPixmap.fromImage(self.display_image))
 
         if self.cropping and self.crop_pressed:
             painter.drawRect(
